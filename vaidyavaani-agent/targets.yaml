@@ -1,0 +1,19 @@
+# The runtime half of the package. One target: LiveKit.
+#
+# That choice is forced, not a preference (docs/02 §1.2). Only LiveKit gives us
+# BOTH local Python tool handlers — the confirmation gate, the console pushes —
+# AND generated listen fallback. Pipecat refuses generated fallback, which
+# would kill the failover demo. The SLNG hosted target refuses `local:`
+# handlers outright and gives tool code no internet, which would kill every
+# console call. `unmute deploy` to SLNG is the production-path slide, not the
+# demo runtime, and it needs the tools re-authored as hosted ones.
+targets:
+  livekit:
+    provider: livekit
+    version: "1.8.1"
+    sdk_language: python
+    # The worker runs in India. Note what this does and does not claim: a
+    # nearby worker and an in.api.slng.ai gateway are not data residency.
+    # unmute's own regional docs are blunt that no single setting guarantees
+    # it — providers, media, tools and traces each have their own locations.
+    deployment_region: ap-south

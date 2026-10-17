@@ -1,0 +1,41 @@
+{
+  "version": 1,
+  "_note": "Format owned by console-backend; clinical content owned by content-eval. Tamil strings are NEEDS-NATIVE-REVIEW placeholders.",
+  "patient_language": "ta",
+  "language_confidence": 0.93,
+  "steps": [
+    { "after_ms": 300, "op": "stage", "stage": "consent" },
+    { "after_ms": 400, "op": "partial", "side": "patient", "text": "நான் சம்மதிக்கிறேன்…" },
+    { "after_ms": 400, "op": "consent", "given": true },
+    { "after_ms": 200, "op": "stage", "stage": "interpret" },
+    { "after_ms": 500, "op": "partial", "side": "patient", "text": "காய்ச்சல்…" },
+    { "after_ms": 600, "op": "turn",
+      "turn": { "side": "patient", "original_text": "காய்ச்சல் மூன்று நாள்", "english_text": "Fever for three days", "detected_language": "ta", "lay_terms": [], "negations": [] } },
+    { "after_ms": 400, "op": "metric", "reply_latency_ms": 812, "stages": { "stt": 298, "llm_ttft": 252, "tts_first_audio": 198 } },
+    { "after_ms": 500, "op": "turn",
+      "turn": { "side": "doctor", "original_text": "Any chest pain?", "english_text": "Any chest pain?", "detected_language": "en" } },
+    { "after_ms": 700, "op": "turn",
+      "turn": { "side": "patient", "original_text": "நெஞ்சு வலி இல்லை, நடுக்கம் இருக்கு", "english_text": "No chest pain, but shivering", "detected_language": "ta", "lay_terms": [{ "said": "sugar", "likely_means": "diabetes" }], "negations": ["no chest pain"] } },
+    { "after_ms": 300, "op": "red_flag",
+      "red_flag": { "phrase": "நடுக்கம்", "english": "shivering with fever", "source": "keyword", "severity": "urgent" } },
+    { "after_ms": 400, "op": "failover", "from": "indic", "to": "multi_backup", "gap_ms": 1240 },
+    { "after_ms": 600, "op": "stage", "stage": "prescribe" },
+    { "after_ms": 700, "op": "rx_draft",
+      "ambiguities": ["strength of the second drug was not stated"],
+      "lines": [
+        { "drug_text": "Paracetamol", "strength_value": 500, "strength_unit": "mg", "form": "tablet",
+          "schedule": { "morning": 1, "afternoon": 0, "night": 1 }, "food_relation": "after_food",
+          "duration_days": 5, "notes": null, "confidence": 0.91 },
+        { "drug_text": "ORS", "strength_value": null, "strength_unit": null, "form": "syrup",
+          "schedule": { "morning": 1, "afternoon": 1, "night": 1 }, "food_relation": "with_food",
+          "duration_days": 3, "notes": null, "confidence": 0.74 }
+      ] },
+    { "op": "await_confirm" },
+    { "after_ms": 1200, "op": "teachback",
+      "patient_text": "காலையில் ஒன்று, இரவில் ஒன்று, இரண்டு நாள்",
+      "english_text": "Paracetamol one in the morning and one at night after food for two days. ORS one in the morning, one in the afternoon, one at night with food for three days." },
+    { "after_ms": 600, "op": "voice_note", "text": "<rendered read-back>", "language": "ta" },
+    { "after_ms": 400, "op": "metric", "reply_latency_ms": 760, "stages": { "stt": 280, "llm_ttft": 240, "tts_first_audio": 190 } },
+    { "after_ms": 600, "op": "end", "reason": "mock replay finished" }
+  ]
+}

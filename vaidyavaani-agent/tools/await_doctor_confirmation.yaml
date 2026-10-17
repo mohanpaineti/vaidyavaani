@@ -1,0 +1,45 @@
+# ── THE GATE ─────────────────────────────────────────────────────────────────
+# The single most important tool in the package. The confirm_prescription task
+# names it in `finish:` with success on `status: confirmed`, and those three
+# status values are duplicated from docs/04 §3.1 into the enum below so that a
+# typo in either place is a compile error rather than a gate that never closes.
+#
+# readback_text is produced only by console/app/readback.py, from the confirmed
+# RxLine fields, and only on a confirmed response. No transcript text and no
+# model output reaches it.
+# ─────────────────────────────────────────────────────────────────────────────
+description: >
+  Ask whether the doctor has confirmed the prescription on their screen. Call it
+  once, then call it again every time the result is pending — the doctor may take
+  a while, and waiting is the correct thing to do. Never describe the medicines,
+  the doses or the timings to the patient before this returns confirmed, not even
+  in general terms, and not even if the patient asks directly. If it returns
+  rejected, the doctor has cancelled: say nothing about the medicines at all.
+
+input:
+  type: object
+  properties: {}
+
+inject:
+  - session_id: "{{state.session_id}}"
+
+output:
+  type: object
+  properties:
+    status:
+      type: string
+      enum:
+        - pending
+        - confirmed
+        - rejected
+    confirmed:
+      type: boolean
+    readback_text:
+      type: string
+    reason:
+      type: string
+  required:
+    - status
+
+local:
+  handler: tools/await_doctor_confirmation.py

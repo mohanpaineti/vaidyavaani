@@ -1,0 +1,96 @@
+description: >
+  Put the prescription you heard on the doctor's screen as editable lines, so the
+  doctor can correct it before anything is spoken to the patient. Call it once you
+  have heard a whole prescription, and again if the doctor dictates more.
+  Put every drug in drug_text exactly as the doctor said it — never correct a drug
+  name, never expand an abbreviation, never substitute a brand for a generic.
+  Leave any field the doctor did not state empty rather than guessing it, and list
+  what was unclear in ambiguities so the doctor is asked rather than assumed at.
+
+input:
+  type: object
+  properties:
+    lines:
+      type: array
+      description: One entry per prescribed medicine, in the order the doctor said them.
+      items:
+        type: object
+        properties:
+          drug_text:
+            type: string
+            description: The drug exactly as the doctor said it. Never corrected or expanded.
+          strength_value:
+            type: number
+            description: The number only, such as 500. Omit if the doctor did not say one.
+          strength_unit:
+            type: string
+            enum:
+              - mg
+              - ml
+              - g
+              - iu
+              - drops
+          form:
+            type: string
+            enum:
+              - tablet
+              - capsule
+              - syrup
+              - injection
+              - drops
+              - ointment
+          schedule:
+            type: object
+            description: >
+              How many units at each time of day. Whole numbers or halves only,
+              from 0 to 4: 1, 0.5 and 1.5 are all fine. Half a tablet is a real
+              and common dose here, so write 0.5 rather than rounding it.
+            properties:
+              morning:
+                type: number
+              afternoon:
+                type: number
+              night:
+                type: number
+          food_relation:
+            type: string
+            enum:
+              - before_food
+              - after_food
+              - with_food
+          duration_days:
+            type: integer
+            description: Whole days, 1 to 180. Omit if the doctor did not say a duration.
+          notes:
+            type: string
+            description: Anything else the doctor said about this medicine, in their words.
+          confidence:
+            type: number
+            description: How sure you are you heard this line correctly, from 0 to 1.
+        required:
+          - drug_text
+    ambiguities:
+      type: array
+      description: Plain descriptions of what the doctor did not make clear, one per item.
+      items:
+        type: string
+  required:
+    - lines
+
+inject:
+  - session_id: "{{state.session_id}}"
+
+output:
+  type: object
+  properties:
+    ok:
+      type: boolean
+    line_ids:
+      type: array
+      items:
+        type: string
+  required:
+    - ok
+
+local:
+  handler: tools/publish_draft_rx.py

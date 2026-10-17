@@ -1,0 +1,20 @@
+{
+  "version": "0.7.4 (d78e289e 2026-10-15T12:48:50Z)",
+  "files": {
+    "SKILL.md": "0e2cee4f31160f1fc5bce9eed432579be72f2b929f0b34e96439d4112b56e8c0",
+    "references/conversation.md": "2381badea5a109d2f8fea874a53a073ea4653d6ddf41d9e81165c3e34a5802ee",
+    "references/deploy.md": "5c48d06f614fca2f78a17cfe484786c5c08340de42d7a4b70d9770b07522d031",
+    "references/examples.md": "3aaa7ecc872f296c0d820d5cea8b36e46f371de69898d6ac792e1039d2eb1451",
+    "references/latency.md": "b22471e066e40d6b3b8f8c5f1a24144a29edc956f33db4e7b44f01257a11d265",
+    "references/manifests.md": "b9f7dfd6a6963373aa9c7538597df98475a96f0ce51bd4d482b54478ec5fd818",
+    "references/models.md": "59634e41a0b59d34425384b79c19a00e079cccfc55c464af955dbced7fa557b7",
+    "references/orchestration.md": "0191bcf0b9e76211ec5dbce9a0c84cdb05e893ccd4d43eef94eaf0a8643ff397",
+    "references/package.md": "6a34aa7d262aaab0298f91b8a416353c5e742f7456e079a7a9a182114ae09b3c",
+    "references/prompting.md": "b7736c635b2497a5f2b6bdf785294f099902135110e2cc0acc7e58138dbaf35a",
+    "references/telephony.md": "8429dba0e4f5112c03fec99f3e776d625f454e6aad4bbbfcb21639c13aa5f0bb",
+    "references/tools.md": "e459fdb6f568d9274f968e1d750d67677991ef9f8664c324da7a6f0b73c4a7e6",
+    "references/transfers.md": "951e26286e11d8aa7f850414d3354fb942f1889c2e321fc8f660d591cdd88383",
+    "references/variables.md": "2ec3c398d77efff7bf4b7d1014a2426263d1ecf322377eb35332a9043d1f113f",
+    "references/workflow.md": "9e02b4022cce0ca81f0b5526e024ec0897fe5c68182f018d32683b4551772d03"
+  }
+}

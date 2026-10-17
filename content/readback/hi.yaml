@@ -1,0 +1,206 @@
+# content/readback/hi.yaml — Hindi read-back slot templates
+#
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  EVERY Hindi string in this file is DRAFTED, NOT VERIFIED.              ║
+# ║  Each carries a trailing  # NEEDS-NATIVE-REVIEW  marker.                ║
+# ║  A native Hindi speaker reads the RENDERED sentence aloud, fixes it,    ║
+# ║  then DELETES that marker from the line.                                ║
+# ║  `python eval/score.py review-status` counts what is still unreviewed.  ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+#
+# Consumed by console/app/readback.py. Inputs are ONLY the integers and enums of
+# a confirmed RxLine (docs/04 §2). No model output reaches this render.
+# Render contract is identical across ta/kn/hi — see content/readback/ta.yaml,
+# with ONE Hindi-only addition: grammatical gender (see below).
+
+schema_version: 1
+language: hi
+language_name_en: Hindi
+
+review:
+  status: pending
+  reviewer: ""
+  reviewed_at: ""
+  how_to_review: >
+    Render every hi row of eval/fixtures/readback_cases.json, READ IT ALOUD.
+    Many Hindi-speaking patients in a Bengaluru OPD are migrant workers from
+    Bihar/UP/Jharkhand — plain Hindustani, not Sanskritised Hindi. If a word
+    would appear on a government form and nowhere else, it is wrong here.
+
+# ---------------------------------------------------------------------------
+# WORD ORDER AND AGREEMENT — where Hindi refuses to follow the English template
+# ---------------------------------------------------------------------------
+# * SOV: ONE verb phrase at the very end of the whole sentence, after the
+#   duration. "एक गोली सुबह लीजिए, एक रात को लीजिए" (verb per clause) sounds
+#   like a machine reading a list; the natural form has one verb at the end.
+# * Clause order is TIME → FOOD → COUNT → NOUN; English is the reverse.
+# * ***GENDER AGREEMENT — the thing an English template cannot express.***
+#   The sentence-final verb AND the word for "half" both agree with the gender
+#   of the form noun:
+#       गोली (f)     -> "एक गोली ... लेनी है"   /  "आधी गोली"
+#       कैप्सूल (m)   -> "एक कैप्सूल ... लेना है" /  "आधा कैप्सूल"
+#       चम्मच (m)    -> "दो चम्मच ... पीना है"  /  "आधा चम्मच"
+#       बूँद (f)      -> "दो बूँद ... डालनी है"
+#   A single shared "take" string would be wrong half the time. This is why
+#   form_nouns carries `gender` and verb_phrase is keyed by form, and why
+#   count_words.half is a map keyed by gender rather than one string.
+# * Pluralisation: written Hindi wants गोलियाँ / बूँदें after a numeral. Spoken
+#   clinic Hindi keeps the singular (दो गोली, दो बूँद). Drafted spoken.
+#   Reviewer: confirm this register call.
+# * "रात को" carries its own postposition को; "सुबह" and "दोपहर" do not. The
+#   postposition is baked into the time_of_day string, NOT added by the
+#   renderer — the renderer must stay dumb.
+# * दिन is invariant after a numeral (पाँच दिन, not पाँच दिनों) in speech.
+
+# STRENGTH IS NEVER SPOKEN (ruled 2026-10-17, docs/04 §2 rulings table): there
+# is no slot for strength_value / strength_unit here and none may be added. The
+# full reasoning is in content/readback/ta.yaml.
+
+templates:
+  dose_clause_first: "{time_of_day} {food_relation} {count} {form}"   # NEEDS-NATIVE-REVIEW
+  dose_clause_next: "{time_of_day} {count}"                           # NEEDS-NATIVE-REVIEW
+  dose_clause_first_no_food: "{time_of_day} {count} {form}"           # NEEDS-NATIVE-REVIEW
+
+joiners:
+  clause: ", "
+  before_verb: " "
+
+punctuation:
+  end: "।"
+
+time_of_day:
+  morning: "सुबह"        # NEEDS-NATIVE-REVIEW
+  afternoon: "दोपहर"      # NEEDS-NATIVE-REVIEW
+  night: "रात को"         # NEEDS-NATIVE-REVIEW  (postposition को is part of the string)
+
+food_relation:
+  before_food: "खाने से पहले"   # NEEDS-NATIVE-REVIEW
+  after_food: "खाने के बाद"     # NEEDS-NATIVE-REVIEW
+  with_food: "खाने के साथ"      # NEEDS-NATIVE-REVIEW
+
+# schedule values are multiples of 0.5 from 0 to 4 (docs/04 §2, changed
+# 2026-10-17 from int). 0 skips the clause; every other legal value needs a word.
+#
+# ***HINDI HALF-COUNTS ARE IRREGULAR — the second thing an English template
+# cannot express.*** There is no "one and a half" construction to fill a slot
+# with. The numbers are suppletive:
+#     0.5 -> आधी / आधा   (gendered; see below)
+#     1.5 -> डेढ़          NOT "एक आधा", NOT "साढ़े एक"
+#     2.5 -> ढाई          NOT "दो आधा", NOT "साढ़े दो"
+#     3.5 -> साढ़े तीन     regular from here up: साढ़े + the whole number
+# Only 0.5 takes gender, because आधा is an adjective and डेढ़/ढाई/साढ़े are not.
+# A renderer that builds these by concatenation produces something no Hindi
+# speaker says, which is exactly the failure this file exists to prevent.
+count_words:
+  0.5:
+    f: "आधी"   # NEEDS-NATIVE-REVIEW  (आधी गोली)
+    m: "आधा"   # NEEDS-NATIVE-REVIEW  (आधा कैप्सूल)
+  1: "एक"       # NEEDS-NATIVE-REVIEW
+  1.5: "डेढ़"    # NEEDS-NATIVE-REVIEW
+  2: "दो"       # NEEDS-NATIVE-REVIEW
+  2.5: "ढाई"    # NEEDS-NATIVE-REVIEW
+  3: "तीन"      # NEEDS-NATIVE-REVIEW
+  3.5: "साढ़े तीन" # NEEDS-NATIVE-REVIEW
+  4: "चार"      # NEEDS-NATIVE-REVIEW
+
+form_nouns:
+  tablet:    { word: "गोली",      gender: f }   # NEEDS-NATIVE-REVIEW
+  capsule:   { word: "कैप्सूल",    gender: m }   # NEEDS-NATIVE-REVIEW
+  syrup:     { word: "चम्मच दवा",  gender: m }   # NEEDS-NATIVE-REVIEW  (a syrup count is SPOONS)
+  drops:     { word: "बूँद",       gender: f }   # NEEDS-NATIVE-REVIEW
+  injection: { word: "इंजेक्शन",   gender: m }   # NEEDS-NATIVE-REVIEW
+  ointment:  { word: "बार",        gender: m }   # NEEDS-NATIVE-REVIEW  (ointment counts are TIMES applied)
+  null_form: { word: "दवा",        gender: f }   # NEEDS-NATIVE-REVIEW  ("medicine")
+
+# Already gender-agreed per form — the renderer picks by form and does NOT
+# conjugate anything itself.
+verb_phrase:
+  tablet: "लेनी है"               # NEEDS-NATIVE-REVIEW  (f, agrees with गोली)
+  capsule: "लेना है"              # NEEDS-NATIVE-REVIEW  (m)
+  syrup: "पीना है"                # NEEDS-NATIVE-REVIEW  (m, agrees with चम्मच)
+  drops: "डालनी है"               # NEEDS-NATIVE-REVIEW  (f, agrees with बूँद)
+  injection: "लगवाना है"          # NEEDS-NATIVE-REVIEW  (m)
+  ointment: "लगाना है"            # NEEDS-NATIVE-REVIEW  (m)
+  null_form: "लेनी है"            # NEEDS-NATIVE-REVIEW  (f, agrees with दवा)
+
+duration:
+  template: "{days} दिन तक"              # NEEDS-NATIVE-REVIEW
+  one_day: "सिर्फ़ आज एक दिन"             # NEEDS-NATIVE-REVIEW
+  day_words:
+    1: "एक"        # NEEDS-NATIVE-REVIEW
+    2: "दो"        # NEEDS-NATIVE-REVIEW
+    3: "तीन"       # NEEDS-NATIVE-REVIEW
+    4: "चार"       # NEEDS-NATIVE-REVIEW
+    5: "पाँच"      # NEEDS-NATIVE-REVIEW
+    6: "छह"        # NEEDS-NATIVE-REVIEW
+    7: "सात"       # NEEDS-NATIVE-REVIEW
+    8: "आठ"        # NEEDS-NATIVE-REVIEW
+    9: "नौ"        # NEEDS-NATIVE-REVIEW
+    10: "दस"       # NEEDS-NATIVE-REVIEW
+    14: "चौदह"     # NEEDS-NATIVE-REVIEW
+    15: "पंद्रह"    # NEEDS-NATIVE-REVIEW
+    21: "इक्कीस"    # NEEDS-NATIVE-REVIEW
+    30: "तीस"      # NEEDS-NATIVE-REVIEW
+  digit_fallback: true
+
+# Prefixed to each sentence ONLY when the prescription has more than one line
+# (docs/04 §2 ruling, 2026-10-17). drug_text is inserted exactly as confirmed —
+# never translated or transliterated.
+multi_line_prefix: "{drug_text} — "   # NEEDS-NATIVE-REVIEW
+
+notes_prefix: "डॉक्टर ने एक बात और कही: "   # NEEDS-NATIVE-REVIEW
+
+errors:
+  all_zero_schedule: "Read-back blocked: this line has 0 in every slot (morning, afternoon and night). The patient would hear no dose at all. Edit the line or remove it."
+  unknown_form: "Read-back blocked: form is not one of tablet|capsule|syrup|injection|drops|ointment|null."
+  duration_out_of_range: "Read-back blocked: duration_days must be 1-180 or null."
+
+examples:
+  - name: brief_model_sentence
+    rx: { schedule: { morning: 1, afternoon: 0, night: 1 }, food_relation: after_food, form: tablet, duration_days: 5 }
+    expect_en: "one tablet in the morning after food, one at night, for 5 days"
+    expect: "सुबह खाने के बाद एक गोली, रात को एक, पाँच दिन तक लेनी है।"   # NEEDS-NATIVE-REVIEW
+  - name: three_times_daily
+    rx: { schedule: { morning: 1, afternoon: 1, night: 1 }, food_relation: after_food, form: tablet, duration_days: 3 }
+    expect: "सुबह खाने के बाद एक गोली, दोपहर एक, रात को एक, तीन दिन तक लेनी है।"   # NEEDS-NATIVE-REVIEW
+  - name: night_only_one_day
+    rx: { schedule: { morning: 0, afternoon: 0, night: 1 }, food_relation: before_food, form: tablet, duration_days: 1 }
+    expect: "रात को खाने से पहले एक गोली, सिर्फ़ आज एक दिन लेनी है।"   # NEEDS-NATIVE-REVIEW
+  - name: syrup_two_spoons_no_duration
+    rx: { schedule: { morning: 2, afternoon: 0, night: 2 }, food_relation: after_food, form: syrup, duration_days: null }
+    expect: "सुबह खाने के बाद दो चम्मच दवा, रात को दो पीना है।"   # NEEDS-NATIVE-REVIEW
+  - name: no_food_relation_stated
+    rx: { schedule: { morning: 1, afternoon: 0, night: 0 }, food_relation: null, form: capsule, duration_days: 7 }
+    expect: "सुबह एक कैप्सूल, सात दिन तक लेना है।"   # NEEDS-NATIVE-REVIEW
+  - name: all_zero_must_raise
+    rx: { schedule: { morning: 0, afternoon: 0, night: 0 }, food_relation: after_food, form: tablet, duration_days: 5 }
+    expect: RAISE_all_zero_schedule
+  - name: half_morning_whole_night
+    rx: { schedule: { morning: 0.5, afternoon: 0, night: 1 }, food_relation: after_food, form: tablet, duration_days: 5 }
+    expect_en: "half a tablet in the morning after food, one at night, for 5 days"
+    # note: The realistic half-dose shape (BP and thyroid dosing). Added when docs/04 §2
+    #        changed schedule from int to multiples of 0.5 on 2026-10-17.
+    expect: "सुबह खाने के बाद आधी गोली, रात को एक, पाँच दिन तक लेनी है।"   # NEEDS-NATIVE-REVIEW
+  - name: half_only_once_a_day
+    rx: { schedule: { morning: 0, afternoon: 0, night: 0.5 }, food_relation: before_food, form: tablet, duration_days: 14 }
+    expect_en: "half a tablet at night before food, for 14 days"
+    # note: A lone half dose, so the half word has to stand without a whole one beside it.
+    expect: "रात को खाने से पहले आधी गोली, चौदह दिन तक लेनी है।"   # NEEDS-NATIVE-REVIEW
+  - name: one_and_a_half
+    rx: { schedule: { morning: 1.5, afternoon: 0, night: 0 }, food_relation: after_food, form: tablet, duration_days: 7 }
+    expect_en: "one and a half tablets in the morning after food, for 7 days"
+    # note: Locks the suppletive form: Hindi डेढ़, Tamil ஒன்றரை, Kannada ಒಂದೂವರೆ — never
+    #        built by concatenating the words for 'one' and 'half'.
+    expect: "सुबह खाने के बाद डेढ़ गोली, सात दिन तक लेनी है।"   # NEEDS-NATIVE-REVIEW
+  - name: two_and_a_half_spoons
+    rx: { schedule: { morning: 2.5, afternoon: 0, night: 2.5 }, food_relation: after_food, form: syrup, duration_days: 3 }
+    expect_en: "two and a half spoons morning and night after food, for 3 days"
+    # note: Hindi ढाई, and a half count on a syrup rather than a tablet.
+    expect: "सुबह खाने के बाद ढाई चम्मच दवा, रात को ढाई, तीन दिन तक पीना है।"   # NEEDS-NATIVE-REVIEW
+  - name: three_and_a_half_regular_form
+    rx: { schedule: { morning: 3.5, afternoon: 0, night: 0 }, food_relation: after_food, form: tablet, duration_days: 3 }
+    expect_en: "three and a half tablets in the morning after food, for 3 days"
+    # note: 3.5 is where Hindi stops being suppletive and becomes regular (साढ़े + the
+    #        whole number). Locking it here so nobody "simplifies" डेढ़ and ढाई into
+    #        the same pattern.
+    expect: "सुबह खाने के बाद साढ़े तीन गोली, तीन दिन तक लेनी है।"   # NEEDS-NATIVE-REVIEW

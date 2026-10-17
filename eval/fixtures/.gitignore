@@ -1,0 +1,6 @@
+# The root .gitignore excludes *.log and dev.log, which silently kept
+# eval/fixtures/dev.log out of the repo for the whole build: score.py defaults
+# --log here, found nothing, printed "NOT MEASURED" and exited 0, so nothing
+# ever complained. This fixture is a committed, generated artifact (see
+# README.md and eval/make_dev_log_fixture.py) and must be in the tree.
+!dev.log

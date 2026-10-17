@@ -1,0 +1,186 @@
+{
+  "_comment": [
+    "Half-step coverage, run in EVERY language. docs/00 §7 records the same safety bug found in",
+    "two independent layers on the day docs/04 §2 changed Schedule from int to multiples of 0.5:",
+    "the comparator truncated with int(), so a prescribed HALF against a patient who heard ONE",
+    "scored as a match; and the extractor mapped the word 'half' to 0, so a prescribed ZERO",
+    "against a patient saying 'half' also scored as a match. Both are silent, both are a wrong",
+    "dose recorded as understood, and NEITHER WOULD EVER FIRE ON A WHOLE-NUMBER TEST CASE.",
+    "",
+    "That is what this file is for. Every case below is a half-step, and `score.py halfstep`",
+    "additionally re-runs the whole set through two deliberately broken comparators — one that",
+    "truncates, one that reads 'half' as 0 — and FAILS if either of them survives the suite.",
+    "A suite that a known-broken comparator can pass is not a suite.",
+    "",
+    "These are mechanical structures, not patient-facing strings, so they carry no",
+    "NEEDS-NATIVE-REVIEW tag. Where a case needs the patient's own word for a dose, it says",
+    "'@count_word:0.5' and the harness reads that word out of content/readback/<lang>.yaml at",
+    "run time — there is deliberately no second copy of that table to go stale (docs/00 §6)."
+  ],
+  "languages": ["ta", "kn", "hi"],
+
+  "render_cases": [
+    {
+      "id": "hs-half-only",
+      "why": "the commonest half in Indian practice — half a thyroid tablet before food",
+      "must_use_count": 0.5,
+      "rx": {
+        "id": "rx_1", "drug_text": "Thyronorm", "strength_value": null, "strength_unit": null,
+        "form": "tablet", "schedule": {"morning": 0.5, "afternoon": 0, "night": 0},
+        "food_relation": "before_food", "duration_days": 60, "notes": null
+      }
+    },
+    {
+      "id": "hs-one-and-a-half",
+      "why": "1.5 is a single suppletive word in all three languages and must never be built by concatenating 'one' and 'half'",
+      "must_use_count": 1.5,
+      "rx": {
+        "id": "rx_1", "drug_text": "Metformin", "strength_value": 500, "strength_unit": "mg",
+        "form": "tablet", "schedule": {"morning": 1.5, "afternoon": 0, "night": 0},
+        "food_relation": "with_food", "duration_days": 30, "notes": null
+      }
+    },
+    {
+      "id": "hs-half-and-whole",
+      "why": "a half in one slot and a whole in another, in one sentence — the two must not blur",
+      "must_use_count": 0.5,
+      "rx": {
+        "id": "rx_1", "drug_text": "Warfarin", "strength_value": 5, "strength_unit": "mg",
+        "form": "tablet", "schedule": {"morning": 0.5, "afternoon": 0, "night": 1},
+        "food_relation": null, "duration_days": 14, "notes": null
+      }
+    },
+    {
+      "id": "hs-two-and-a-half-syrup",
+      "why": "half-steps are not only tablets; a syrup is counted in spoons and takes a different form noun and verb",
+      "must_use_count": 2.5,
+      "rx": {
+        "id": "rx_1", "drug_text": "Paracetamol syrup", "strength_value": 250, "strength_unit": "mg",
+        "form": "syrup", "schedule": {"morning": 2.5, "afternoon": 0, "night": 2.5},
+        "food_relation": "after_food", "duration_days": 3, "notes": null
+      }
+    },
+    {
+      "id": "hs-half-capsule-gendered",
+      "why": "Hindi's word for half agrees with the form noun (आधी गोली, आधा कैप्सूल); a masculine form must not take the feminine word",
+      "must_use_count": 0.5,
+      "rx": {
+        "id": "rx_1", "drug_text": "Omeprazole", "strength_value": 20, "strength_unit": "mg",
+        "form": "capsule", "schedule": {"morning": 0.5, "afternoon": 0, "night": 0},
+        "food_relation": "before_food", "duration_days": 7, "notes": null
+      }
+    }
+  ],
+
+  "teachback_cases": [
+    {
+      "id": "hb-half-heard-whole",
+      "why_wrong": "prescribed half, patient repeats one — a DOUBLE DOSE. int() scores it a match",
+      "catches": "docs/00 §7 bug 1: int() truncation in the comparator",
+      "confirmed": {
+        "id": "rx_1", "drug_text": "Thyronorm", "strength_value": null, "strength_unit": null,
+        "form": "tablet", "schedule": {"morning": 0.5, "afternoon": 0, "night": 0},
+        "food_relation": "before_food", "duration_days": 60, "notes": null
+      },
+      "patient_said": {"morning": "one", "duration_days": 60},
+      "expect_overall": "mismatch",
+      "expect_mismatched_fields": ["rx_1.morning"]
+    },
+    {
+      "id": "hb-zero-heard-half",
+      "why_wrong": "prescribed nothing in the morning, patient says half — an EXTRA DOSE. 'half'->0 scores it a match",
+      "catches": "docs/00 §7 bug 2: the word 'half' parsed as 0 in the extractor",
+      "confirmed": {
+        "id": "rx_1", "drug_text": "Amlodipine", "strength_value": 5, "strength_unit": "mg",
+        "form": "tablet", "schedule": {"morning": 0, "afternoon": 0, "night": 1},
+        "food_relation": null, "duration_days": 30, "notes": null
+      },
+      "patient_said": {"morning": "half a tablet", "night": 1, "duration_days": 30},
+      "expect_overall": "mismatch",
+      "expect_mismatched_fields": ["rx_1.morning"]
+    },
+    {
+      "id": "hb-one-and-a-half-heard-one",
+      "why_wrong": "prescribed one and a half, patient repeats one — a THIRD of the dose missing",
+      "catches": "a comparator that reads only the leading digit of '1.5'",
+      "confirmed": {
+        "id": "rx_1", "drug_text": "Metformin", "strength_value": 500, "strength_unit": "mg",
+        "form": "tablet", "schedule": {"morning": 1.5, "afternoon": 0, "night": 0},
+        "food_relation": "with_food", "duration_days": 30, "notes": null
+      },
+      "patient_said": {"morning": "one", "duration_days": 30},
+      "expect_overall": "mismatch",
+      "expect_mismatched_fields": ["rx_1.morning"]
+    },
+    {
+      "id": "hb-one-heard-one-and-a-half",
+      "why_wrong": "prescribed one, patient repeats one and a half — half a tablet too much, the same error the other way round",
+      "catches": "int() truncation, which rounds the heard 1.5 back down onto the prescribed 1",
+      "confirmed": {
+        "id": "rx_1", "drug_text": "Warfarin", "strength_value": 5, "strength_unit": "mg",
+        "form": "tablet", "schedule": {"morning": 1, "afternoon": 0, "night": 0},
+        "food_relation": null, "duration_days": 14, "notes": null
+      },
+      "patient_said": {"morning": "one and a half", "duration_days": 14},
+      "expect_overall": "mismatch",
+      "expect_mismatched_fields": ["rx_1.morning"]
+    },
+    {
+      "id": "hb-half-correct-english-control",
+      "why_wrong": "NOT wrong — the patient says the half back correctly, in English. A comparator that flags this over-flags and every catch above is worthless",
+      "catches": "over-flagging on a correct half",
+      "confirmed": {
+        "id": "rx_1", "drug_text": "Thyronorm", "strength_value": null, "strength_unit": null,
+        "form": "tablet", "schedule": {"morning": 0.5, "afternoon": 0, "night": 0},
+        "food_relation": "before_food", "duration_days": 60, "notes": null
+      },
+      "patient_said": {"morning": "half a tablet", "duration_days": 60, "food_relation": "before_food"},
+      "expect_overall": "match",
+      "expect_mismatched_fields": []
+    },
+    {
+      "id": "hb-half-correct-own-language-control",
+      "why_wrong": "NOT wrong — the patient says the half back in their OWN language, in the very word the read-back spoke. Resolved from content/readback/<lang>.yaml at run time",
+      "catches": "a parser that understands only English, which would score a correct patient as not having answered",
+      "confirmed": {
+        "id": "rx_1", "drug_text": "Thyronorm", "strength_value": null, "strength_unit": null,
+        "form": "tablet", "schedule": {"morning": 0.5, "afternoon": 0, "night": 0},
+        "food_relation": "before_food", "duration_days": 60, "notes": null
+      },
+      "patient_said": {"morning": "@count_word:0.5", "duration_days": 60},
+      "expect_overall": "match",
+      "expect_mismatched_fields": []
+    },
+    {
+      "id": "hb-one-and-a-half-correct-own-language-control",
+      "why_wrong": "NOT wrong — 1.5 repeated in the patient's own suppletive word (ஒன்றரை / ಒಂದೂವರೆ / डेढ़)",
+      "catches": "a parser that handles 0.5 but not the other half-steps",
+      "confirmed": {
+        "id": "rx_1", "drug_text": "Metformin", "strength_value": 500, "strength_unit": "mg",
+        "form": "tablet", "schedule": {"morning": 1.5, "afternoon": 0, "night": 0},
+        "food_relation": "with_food", "duration_days": 30, "notes": null
+      },
+      "patient_said": {"morning": "@count_word:1.5", "duration_days": 30},
+      "expect_overall": "match",
+      "expect_mismatched_fields": []
+    }
+  ],
+
+  "parse_cases": [
+    {"phrase": "half", "expect": 0.5, "why": "the §7 bug in one word: this must never be 0"},
+    {"phrase": "a half", "expect": 0.5, "why": ""},
+    {"phrase": "half a tablet", "expect": 0.5, "why": ""},
+    {"phrase": "one and a half", "expect": 1.5, "why": "must beat the bare 'half' inside it"},
+    {"phrase": "1 and a half", "expect": 1.5, "why": ""},
+    {"phrase": "two and a half", "expect": 2.5, "why": ""},
+    {"phrase": "three and a half", "expect": 3.5, "why": ""},
+    {"phrase": "0.5", "expect": 0.5, "why": "the digit form, as the extractor normalises it"},
+    {"phrase": "1.5", "expect": 1.5, "why": ""},
+    {"phrase": "one", "expect": 1.0, "why": ""},
+    {"phrase": "zero", "expect": 0.0, "why": "the only phrase that may be 0"},
+    {"phrase": "@count_word:0.5", "expect": 0.5, "why": "the patient's own word for a half"},
+    {"phrase": "@count_word:1.5", "expect": 1.5, "why": "the patient's own word for one and a half"},
+    {"phrase": "@count_word:2.5", "expect": 2.5, "why": ""},
+    {"phrase": "@count_word:3.5", "expect": 3.5, "why": ""}
+  ]
+}

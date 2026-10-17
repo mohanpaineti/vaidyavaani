@@ -1,0 +1,838 @@
+# Tools
+
+A tool is two things: a contract the model sees, and something that runs when
+the model calls it. Both live in one file, `tools/<name>.yaml`.
+
+## The shape of a tool file
+
+```yaml tools/find_slots.yaml
+description: >-
+  List Sage and Stone slots for one service and date, and the caller's own
+  bookings. Call this before offering a time and before changing a booking.
+
+input:
+  type: object
+  properties:
+    service:
+      type: string
+      enum:
+        - haircut
+        - hair-color
+        - blowout
+    date:
+      type: string
+      description: Preferred date in YYYY-MM-DD form
+
+local:
+  handler: tools/find_slots.py
+```
+
+The top is the contract. `description` and `input` are everything the model
+knows about this tool, so write the description as an instruction rather than a
+label, and let the schema do real work. The `enum` above means the model cannot
+ask for a service the salon does not offer.
+
+The schema is the complete argument list. Keep workflow prerequisites in the
+agent or task prompt; do not make their names look like extra tool inputs in the
+description. Generated Pipecat direct tools return a corrective result when a
+provider adds an undeclared argument, or when a handler fails before returning,
+so the model can retry instead of leaving the call stuck in progress.
+
+The block near the bottom says how the tool runs. **Every tool file has exactly
+one execution block.** Two is an error, and none is an error whose message is
+also the list of what you could have written.
+
+## The eight execution blocks
+
+| Block | The tool is | Reach for it when |
+|---|---|---|
+| `webhook:` | an HTTP call to a URL named by an environment variable | the user already has an API. This is the everyday case |
+| `local:` | a Python function in the package | the call needs code of your own: a signature, a transform, a fixture |
+| `mcp:` | a remote MCP server that offers its own tools | the user names a server and wants what it exposes |
+| `builtin:` | a tool the runtime already has, selected by id | you want `end_call`, or `send_sms` on the `slng` target |
+| `slng:` | a tool the SLNG platform already hosts | the user names a tool that exists in their SLNG organisation. See below |
+| `client:` | a tool the caller's own application fulfils | never yet. Gated, see below |
+| `provider_hosted:` | a tool the model provider runs itself | never yet. Gated, see below |
+| `knowledge:` | a search over a folder of the user's own documents | the user has policies, price lists, or manuals the agent should quote instead of guess |
+
+### Which fields each block allows
+
+| Field | Required | Legal on |
+|---|---|---|
+| `description` | yes, except on `builtin:` and `mcp:` | everywhere else |
+| `input` | yes, except on `builtin:`, `mcp:` and `knowledge:` | everywhere else |
+| `output` | no | everywhere except `builtin:`, `mcp:` and `knowledge:`, but see below |
+| `inject` | no | `webhook:`, `local:` and `slng:`, and `builtin:` for a capability's own settings |
+| `interruption` | no | everywhere except `mcp:` |
+| `effect` | no | everywhere except `mcp:` and `knowledge:` |
+| `announce` | no | everywhere except `mcp:`; on a `builtin:`, the `slng` target only |
+
+An `mcp:` file is the block and nothing else, because the server owns each
+tool's contract. A `builtin:` file needs no `description` or `input`, because
+the registry supplies both. A `knowledge:` file takes no `input` or `output`
+either, because the tool owns both: it asks for one string and returns passages.
+An `slng:` file takes no `input` or `output` either, and for the same reason:
+the platform published the schema, so a second copy here could disagree with it.
+
+**`output:` is author-side documentation, not a contract with the model.** The
+compiler checks that it is a JSON Schema object, but no generator sends it to
+the model, puts it in the compile report, or enforces it at run time. The
+generated wrapper returns whatever the endpoint or handler returned, unshaped.
+
+### The two gated blocks
+
+`client:` and `provider_hosted:` exist in the schema and no target emits them.
+Writing one fails with the target named:
+
+```
+livekit: LiveKit client tools are not proven by its driver
+```
+
+Do not write one, and do not offer one as an option. They are listed here so
+that a refusal a user meets reads as a decision rather than a bug.
+If you need to show the refusal, YAML requires `client: {}` or
+`provider_hosted: {}`; a bare empty block is itself invalid.
+
+## SLNG-hosted tools
+
+The user says a tool already exists in their SLNG organisation. Write one
+line naming it, not a copy of it:
+
+```yaml
+# tools/check_order.yaml
+slng: check_order
+
+announce: One moment while I look that up.
+```
+
+`slng: check_order` is the whole reference. `check_order` is the tool's exact
+name **on the platform**. Write no `description:` and no `input:`: both are
+inherited from the published tool. A `description:` you do write overrides
+the platform's for this one attachment, which is the right move only when the
+user deliberately wants different words spoken than the platform's own
+description. Delete it later and inheritance comes back.
+
+Two names, and keeping them straight is what a coding agent gets wrong first:
+
+1. **The tool file's own name is the package reference**, the one an agent's
+   `tools:` list attaches and every local diagnostic uses. It does not have
+   to match the hosted name: `tools/order_status.yaml` may hold
+   `slng: check_order`, so the agent attaches `order_status` and deployment
+   resolves `check_order`. This creates no tool and renames nothing on the
+   platform; use it when the user wants the file and the prompt to read
+   naturally without matching the platform's own naming.
+2. **The `slng:` scalar is the hosted name**, checked against the
+   organisation only when the user deploys. Get it wrong and the deploy
+   refuses, naming the organisation and what it does have; nothing checks it
+   offline, because only the organisation knows.
+
+`inject:` and `announce:` work exactly as they do on any other tool: see
+"Hidden values the model cannot see" and "Using `announce:`" below. Injected
+values keep their exact type, including `false` and `0`; the tool call
+remains model-invoked either way, never automatic.
+
+**No hash, no mirror, and no `unmute pull` for a package that deploys to
+SLNG only.** Never write `slng: {}` and tell the user to run `unmute pull`:
+that was the old shape, superseded by naming the tool directly. If the
+user's package also compiles to `livekit` or `pipecat`, which build and run
+the tool themselves, run `unmute pull` once to fetch a real copy into the
+package (`tools/<name>.slng.json`, and for a code tool `tools/<name>.slng.py`,
+plus generated `tools/<name>.slng.meta.json` holding the pin), then commit
+what it writes.
+
+The `.slng.` files a pull writes are the platform's copy, mirrored, never
+authored. Never edit one: the change reaches nothing, and the next compile of
+a code target refuses because the pin no longer matches. Change the tool on
+the platform and pull again.
+
+The legacy block, `slng:` with `hash:` under it, still loads and still
+resolves by the file's own name. It is what an older package carries. Do not
+write it into a new tool file; write the scalar name instead.
+
+### Why this block exists
+
+The SLNG platform owns a tool's code, version and gate pipeline. So on an slng
+target `local:` and `webhook:` are refused: unmute creates no tool there. A new
+code tool starts from a Python file with `voiceai tool create`, and a new
+request tool in the SLNG dashboard. `slng:` is how a package reaches one that is
+already there.
+
+```sh
+voiceai tool create hosted/check_availability.py --description "..."   # Input, Output, handler
+voiceai tool run check_availability --input sample.json --confirm-side-effects
+voiceai tool publish check_availability    # a push attaches only a published version
+```
+
+`voiceai tool update <name> --file <path>` changes it later.
+
+It costs no portability, for a package that wants livekit or pipecat too. A
+pulled mirror carries the platform's own introspected schema and, for a code
+tool, its module, so the same package compiles to livekit and pipecat and
+runs the same tool inside the generated project.
+
+One limit, and state it rather than letting the user discover it: a hosted
+tool that declares Python dependencies compiles to slng, which installs a
+per-tool environment, and is **refused** on livekit and pipecat, which build
+one dependency list for the whole project. A hosted tool with no dependencies
+works on all three. On a slng-only package this limit is invisible until
+deploy, because there is no mirror to read it from ahead of time.
+
+**Say plainly what an offline `validate` or `compile` cannot tell the user,**
+for a `slng:` reference: whether the organisation still holds that name,
+whether an injected argument fits its published parameters, and which Vault
+entries it needs. `compile-report.json` names these under `deferred_checks`;
+`unmute deploy` completes all three before it changes the agent, and reports
+what it found. A clean `validate` or `compile` is not proof the reference
+exists on the platform.
+
+`unmute pull` needs an SLNG credential and is only needed when a code target
+runs a hosted tool itself. `validate` and `compile` work offline; a slng-only
+package needs no mirror at all. `deploy` and `resources` also need an account
+credential to reach the organisation.
+
+## Knowledge bases
+
+The user has documents and wants the agent to answer from them instead of
+guessing. Two parts: a `knowledge:` section in `agent.yaml` naming a folder, and
+one tool per base.
+
+```yaml
+# agent.yaml
+knowledge:
+  refunds:
+    documents: knowledge/refunds
+  services:
+    documents: knowledge/services
+    embed: openai              # optional; openai is the default
+```
+
+```yaml
+# tools/look_up_refund_policy.yaml
+description: >-
+  Look up the company's refund and complaints policy. Use this before you state
+  any refund, replacement, timescale, or goodwill offer, so you quote the policy
+  instead of guessing it.
+announce: "Let me check the policy."
+knowledge:
+  base: refunds
+```
+
+| Field | Required | Default | Rule |
+|---|---|---|---|
+| map key in `knowledge:` | yes | none | 3 to 64 characters of `[a-z0-9_]` |
+| `documents` | yes | none | folder path relative to the package root, holding `.txt`, `.md` or `.pdf` files |
+| `embed` | no | `openai` | one of the supported services below |
+| `mode` | no | `hybrid` | `meaning`, `keyword`, or `hybrid` |
+| `chunk_size` | no | `90` | passage size in **tokens**, 1 to 2048 |
+| `chunk_overlap` | no | `20` | tokens two neighbouring passages share; never larger than `chunk_size` |
+| `top_k` | no | `3` | passages a lookup returns, 1 to 20 |
+| `min_score` | no | none | drop results below this score, 0 to 1. See the warning below |
+| `base` on the tool | yes | none | names a base declared in `knowledge:` |
+
+### Which mode to write
+
+Default to leaving `mode` out, which gives `hybrid`. Choose deliberately when the
+user's situation matches a column:
+
+| `mode` | Searches by | Needs a key | When to write it |
+|---|---|---|---|
+| `meaning` | what the question means | yes | callers paraphrase, and the documents use different words than they do |
+| `keyword` | the words themselves (BM25) | **no** | codes, names, prices, part numbers; or the user cannot send documents to a third party; or they want no per-lookup latency |
+| `hybrid` | both, interleaved | yes | the default, and the right answer when unsure |
+
+`meaning` wins paraphrase, which is the only thing it is for. `keyword` wins exact
+terms, and holds up better as a corpus grows. `hybrid` takes both, which is why it
+is the default.
+
+**`keyword` is the one to remember.** It needs no embedding service, no credential
+in `secrets:`, and makes no network call, so a lookup is local memory access rather
+than a round trip. If the user is nervous about sending documents to a third party,
+this is the answer. It produces no scores, so `min_score` is refused with it. Do
+not sell it on image size: the difference is small, because no mode installs a
+vector store.
+
+### Tell the user to bake the index into the image
+
+Every worker process embeds the corpus at startup otherwise, and that is paid again
+on every scale-up. One extra build flag removes it:
+
+```sh
+docker build --build-arg KNOWLEDGE_BAKE=1 \
+  --secret id=OPENAI_API_KEY,env=OPENAI_API_KEY .
+```
+
+Startup becomes a disk read, with the same answers. Use the credential the chosen
+embedding service needs, and the generated `README.md` prints the exact command. Both flags are required, and the credential must be a `--secret` rather
+than a `--build-arg` so it never lands in a layer.
+
+Mention it whenever a package declares `knowledge:` with a mode that embeds. It does
+not apply to `mode: keyword`, which embeds nothing, though baking still saves the
+splitting work. A lookup embeds the caller's question either way, so the run time
+still needs the credential in `secrets:`.
+
+### A startup error that names neither uv nor knowledge
+
+```
+PermissionError: Security Violation [pathsec.open]: refusing multiply-linked file
+```
+
+This means the `.venv` was installed with hard links out of uv's cache, the
+default on Linux. NLTK refuses such a file, and the knowledge index reads its
+stopword list through NLTK. The generated `pyproject.toml` sets
+`link-mode = "copy"` under `[tool.uv]` and the Dockerfile passes
+`--link-mode=copy`, so do not remove either. A `.venv` built before that setting
+existed still holds the links, and so does one built with `UV_LINK_MODE=hardlink`
+exported. Recompiling deletes `build/<target>/`, `.venv` with it, so recompile or
+delete `.venv` and run again.
+
+### When to set the retrieval fields
+
+**Leave them alone unless the user's documents give you a reason.** The defaults
+suit prose, and send about 200 tokens of retrieved text per lookup.
+
+Set them when the shape of the document calls for it:
+
+| The user's documents | What to write |
+|---|---|
+| Prose: policies, manuals, FAQs | nothing; the defaults |
+| Lists: prices, opening hours, specifications | `chunk_size: 220`, `chunk_overlap: 40` |
+| A caller will quote a long passage back | wider `chunk_size`, and `top_k: 5` |
+
+The list case is the one that bites. At the default 90 tokens a table of prices
+splits mid row, so a service name lands in one passage and its price in the next,
+and a question about the price ranks something else above it.
+
+**`top_k` times `chunk_size` is what reaches the model on every lookup**, during
+a phone call. Above about 1500 tokens the compiler warns. Do not raise both.
+
+**Do not set `min_score` unless the user asks for it, and push back if they name
+a high value.** These are similarity scores, not probabilities: in practice they
+land well below 1, so `0.9` reads like "high confidence" and in fact returns
+nothing. The gap between a genuine answer and an off-topic question is far smaller
+than the 0 to 1 range suggests.
+
+**It only works on `mode: meaning`.** On `hybrid` the keyword half returns
+unscored passages that survive every cutoff, so a cutoff there removes real
+answers and silences nothing. If a user wants one, suggest `0.25` and `mode:
+meaning`, tell them the band depends on their own documents, and tell them to
+check it before shipping. Above `0.25` the compiler warns.
+
+| Embedding service | Credential to declare in `secrets:` |
+|---|---|
+| `openai` *(default)* | `OPENAI_API_KEY` |
+| `gemini` | `GEMINI_API_KEY` |
+| `huggingface` | `HF_TOKEN` |
+| `bedrock` | the AWS credential chain, so nothing to declare |
+
+Use `openai` unless the user asks for something else. `embed:` is per base, so two
+bases in one package can use different services, and the emitted project installs a
+client only for the services actually named. `huggingface` is the hosted Inference
+API, not a local model. `bedrock` declares no variable in `secrets:`, because it
+authenticates through the AWS credential chain.
+
+### What to write, and what not to
+
+- **Write a real `description`.** It is the only thing that tells the model when
+  to look something up rather than answer from memory. Say what is in the folder
+  and when to check it, as the example above does.
+- **Write an `announce`.** A lookup takes a moment, and silence sounds like a
+  dropped call.
+- **Give each agent only the bases it should see.** An agent gets a base by
+  being given its tool, so a refunds tool on the concierge means the concierge
+  can quote refund policy. That is the whole access model.
+- **Do not set `mode`, `chunk_size`, `chunk_overlap`, `top_k` or `min_score`
+  without a reason from the user's own documents.** All five exist, and all five
+  default to something sensible. Reach for them when the shape of the document
+  calls for it, per the two sections above, not by habit.
+- **Do not put `input:` or `output:` on the tool.** Refused, with the line number.
+
+### Two things to tell the user
+
+- **Content is fixed until the next compile.** The documents are read, split and
+  embedded once when the agent starts. Editing a PDF changes nothing until they
+  compile and deploy again.
+- **A scanned PDF fails at startup, not at compile.** Deciding whether a PDF
+  yields text needs a parser the compiler does not have, so a document with no
+  text layer is named and skipped at startup, and a base where nothing yields
+  text stops the deployment. If their PDF is a photo of a page, it needs OCR
+  first.
+
+## Webhook tools
+
+```yaml tools/confirm_appointment.yaml
+description: Confirm that the existing appointment stays as booked. Call it when the customer says the time works.
+
+input:
+  type: object
+  properties: {}
+
+inject:
+  - customer_id: "{{state.customer_id}}"
+  - channel: phone
+
+webhook:
+  url_env: SALON_API_URL
+  path: /customers/{{state.customer_id}}/appointments/confirm
+  auth:
+    type: bearer
+    token_env: SALON_API_TOKEN
+
+effect: returns_data
+interruption: provider_default
+```
+
+| Field | Required | What it is |
+|---|---|---|
+| `url_env` | yes | the `UPPER_SNAKE` name of a variable holding the base URL |
+| `path` | no | starts with `/`, is appended to that base URL, and may carry `{{state.variable}}` tokens |
+| `auth` | no | `bearer` or `api_key`; an API key may name a custom `header` |
+
+`webhook:` runs on LiveKit and Pipecat. For SLNG, create the request tool in
+the dashboard and reference it with `slng:`.
+
+`url_env` holds a **name**, never a URL. Writing the address there is refused.
+That is what lets staging and production run the same package against different
+APIs.
+
+Both names (the `url_env` and any `auth.token_env`) also go in the package's
+top-level `secrets:` list. That is a separate file from this one, and forgetting
+it is a warning at exit 0 rather than an error, so it is easy to miss. See
+`package.md`.
+
+`path` renders per call and the rendered value is URL encoded for you. Because
+it renders per call rather than at session start, a variable that only gets
+its value once a task assigns it partway through the call is fine here. A
+token naming nothing at all fails at compile time.
+
+**`path` templates a declared variable, never an `input` property.** These are
+two different things and mixing them up is the most common webhook mistake:
+
+```yaml
+input:
+  type: object
+  properties:
+    tracking_number:
+      type: string
+
+webhook:
+  url_env: COURIER_API_URL
+  path: /tracking/{{state.tracking_number}}   # WRONG: that is an input property
+```
+
+```
+tools/track_parcel.yaml:19: tool "track_parcel" webhook.path references {{tracking_number}},
+  which is not a declared variable
+```
+
+**Every `input` property is sent as the JSON request body already.** So the
+usual fix is to delete the template and keep a fixed path:
+
+```yaml
+webhook:
+  url_env: COURIER_API_URL
+  path: /tracking
+```
+
+The API then receives `{"tracking_number": "..."}` in the body. Only put a
+`{{state.name}}` in the path when `name` is in the package's top-level `variables:`
+block, and say to the user which shape the request ended up with, because they
+may need to change their endpoint to match.
+
+Every `inject` value must be a scalar: a string, number, boolean, or null. Maps
+and lists are refused.
+
+### Authentication
+
+| Field | What it is |
+|---|---|
+| `type` | `bearer` or `api_key` |
+| `token_env` | environment variable holding the token |
+| `header` | header name, `api_key` only, defaults to `X-API-Key` |
+
+Those two schemes are the whole list in this version. If the user's API needs a
+signed request, an OAuth exchange, or mutual TLS, a webhook tool cannot do it.
+Say so and write a Python handler instead.
+
+## Python tools
+
+Two files that go together: the tool file and the handler beside it.
+
+```yaml tools/cancel_appointment.yaml
+description: Cancel the appointment outright. Call it only when the customer says plainly that they want to cancel, never when they want a different time.
+
+input:
+  type: object
+  properties: {}
+
+inject:
+  - customer_id: "{{state.customer_id}}"
+
+output:
+  type: object
+  properties:
+    cancelled:
+      type: boolean
+    customer_id:
+      type: string
+  required:
+    - cancelled
+    - customer_id
+
+local: {}
+```
+
+```python tools/cancel_appointment.py
+def cancel_appointment(customer_id):
+    return {"cancelled": True, "customer_id": customer_id}
+```
+
+This is a self-contained fixture that runs without a booking API.
+
+The rules the function follows:
+
+| Rule | Why |
+|---|---|
+| the function name matches the tool name | that is how the generated code finds it |
+| its parameters match the `input` properties plus the `inject` keys | the call is built from both |
+| it returns the value your description and prompt expect | the result goes back to the model; the code targets do not enforce `output`, SLNG turns it into a pydantic `Output` class and validates the return value against it |
+| it may be `async def` on the code targets | the generated code awaits an awaitable result; SLNG calls the handler synchronously and refuses an `async def`, and refuses any import of `requests`, `httpx`, `urllib`, `urllib3`, `aiohttp`, `http.client` or `socket`, because custom code there has no network |
+| it imports nothing from Unmute | the generated project does not depend on Unmute at run time |
+
+**An optional `input` property is always passed, as an empty string.** The
+generated call is by keyword every time, so a Python default in your handler is
+dead code: it receives `""`, not `None` and not your default. Write
+`def check(date, part_of_day="")` and treat `""` as "not given". A handler that
+tests `if part_of_day is None:` compiles clean and misbehaves on the first call,
+and neither `validate` nor `compile` will say a word about it.
+
+A handler reaches a credential through `os.environ`, and the variable name goes
+in `secrets:` like any other. Literal lookups are also inferred for generated
+environment instructions and startup checks.
+
+`unmute compile` copies the file into the generated project and imports it as a
+plain module.
+
+The `local.handler` field is optional. When it is absent, Unmute uses
+`tools/<tool-name>.py`, so the example above resolves to
+`tools/cancel_appointment.py`.
+
+## MCP servers
+
+One block, and nothing else in the file.
+
+```yaml tools/web_search.yaml
+mcp:
+  server: firecrawl-mcp-2
+  url_env: FIRECRAWL_MCP_URL
+  transport: streamable_http
+  auth:
+    type: bearer
+    token_env: FIRECRAWL_API_KEY
+  tools:
+    - firecrawl_search
+```
+
+| Field | Required | What it is |
+|---|---|---|
+| `server` | no | the server's name on the platform, when it is not this tool's own file name. A platform name often carries a dash, which no tool file name can |
+| `url_env` | on livekit and pipecat; not read by slng | the `UPPER_SNAKE` name of the variable holding the server address |
+| `transport` | no | `sse` or `streamable_http` |
+| `auth` | no; never read by slng | `bearer` with `token_env`, or `api_key` with `token_env` and an optional `header` |
+| `tools` | on slng | non-empty, unique server tool names to offer; absent means all of them on the code targets, and is refused on slng |
+
+**On a package that only targets slng, write `server:` (when it differs from
+the file name) and `tools:`, and nothing else.** SLNG already has the server
+registered, with its own address and credential; `url_env`, `transport` and
+`auth` exist for livekit and pipecat, which dial the server themselves, and
+selecting one of those still requires them.
+
+`url_env` is a name, never an address. `transport` is optional because both
+platforms guess it from the URL: a path ending in `/mcp` is streamable HTTP,
+anything else is SSE. Write it when you want the choice visible rather than
+inferred. Any other value is refused with both legal ones named.
+
+Listing specific `tools:` is usually right. A whole server dropped into an
+agent's tool list is a large, unreviewed surface, and the model will use all of
+it.
+
+MCP sources are required at runtime. Pipecat connects them during bot setup;
+LiveKit probes every source before `AgentSession.start`, always attempts to close
+every created probe, and mounts a fresh client on the agent or task. A connection
+or tool-list error stops the session before it greets the caller on either
+target. A LiveKit probe close error also stops startup. Pipecat cleanup errors
+surface during teardown after every close has been attempted.
+
+With Langfuse tracing enabled, Pipecat MCP calls emit finite spans named after the tool, with its arguments and, when completed, the result.
+With Coval tracing enabled, the same calls emit `llm_tool_call` spans carrying `function.name`, `tool_call_id`, `function.arguments`, the bounded result as `tool.result`, `tool.latency_ms`, and a numeric `tool.error`, with an error status when the tool failed.
+Pipecat refuses to start when an agent tool, task function, or MCP source on the same agent exposes the same name.
+
+## Prebuilt tools
+
+```yaml tools/end_call.yaml
+description: "End the call when the caller is finished or says goodbye."
+builtin:
+  id: end_call
+  instructions: Thank the caller briefly, then end the call.
+```
+
+**The registry is closed and has four rows.**
+
+Builtin ids: `current_datetime`, `end_call`, `send_sms`, `user_phone_number`.
+`end_call` compiles on every target. The other three are capabilities SLNG
+curates and compile on the `slng` target only.
+`builtin.instructions` is optional and tells the model what to do as the
+prebuilt runs without changing its fixed behavior.
+
+| id | Effect | Settings it takes | Default description |
+|---|---|---|---|
+| `end_call` | `ends_conversation` | none | End the call when the caller is finished or says goodbye. |
+| `send_sms` | `returns_data` | `from_number` | Send a text message to a phone number the caller has given and confirmed. |
+| `current_datetime` | `returns_data` | `timezone` | Read the current date and time. |
+| `user_phone_number` | `returns_data` | none | Read the number the caller is calling from. |
+
+**The file has to be named after the id it selects.** `slng` attaches a builtin
+by the tool file's own name, so `tools/hang_up.yaml` declaring
+`builtin: {id: end_call}` asks the platform for a tool called `hang_up`, which
+nobody has. Validate refuses it and says which file to rename.
+
+A capability's **settings** are written with `inject:`, which on a builtin is
+the tool's own configuration and not an argument. A curated capability
+publishes no argument schema, so there is nowhere else for a pinned value to go,
+and the model never sees one either way.
+
+`send_sms` takes one `from_number`, a literal number in international format
+starting with a plus sign, and nothing else; the model supplies the recipient
+and the body, and SLNG reads `TWILIO_ACCOUNT_SID` and `TWILIO_AUTH_TOKEN` from
+the vault by itself, which `unmute deploy` checks. Pair it with a
+`source: conversation` variable so the confirmed number is recorded on the call.
+
+`current_datetime` takes one `timezone`, an IANA zone name. **Write it.** The
+curated tool defaults to UTC and belongs to no organisation, so it cannot be
+changed on the platform, and an agent that is not in UTC is told the wrong date
+for part of every day:
+
+```yaml tools/current_datetime.yaml
+description: Read the clock. Call it once at the start of the call, before any day or time is discussed.
+builtin:
+  id: current_datetime
+inject:
+  - timezone: "America/Los_Angeles"
+effect: returns_data
+```
+
+A zone survives daylight saving. An offset written into the prompt does not.
+
+There is no plugin seam, and you cannot add to it from a package. Do not invent
+a builtin id: an unknown one is refused by name.
+
+If what the user wants is not in that table, it is usually a webhook, a Python
+handler, or an MCP server. **One thing it is not is a tool at all:** handing the
+caller to a person is an entry under `escalations:` at the top level of
+`agent.yaml`, not a file in `tools/`. See `transfers.md`, and check there first,
+because on a browser-only package a transfer is not possible at all.
+
+The registry decides the effect and the parameters for you. Writing an `effect`
+that disagrees fails rather than being ignored, and a `builtin:` file takes no
+`input`, `output`, `handler`, or `url_env`. Leave `description` out and the
+registry default is used.
+
+Add `end_call` to every agent that answers a phone. `unmute init` scaffolds it
+for exactly that reason.
+
+On `slng`, `end_call` says its own goodbye before it hangs up, "Thanks for
+calling. Goodbye!" by default. Set your own with `announce:` (see "When to write
+`announce:`" below), and do not tell the model to say goodbye too.
+
+## Hidden values the model cannot see
+
+```yaml
+inject:
+  - customer_id: "{{state.customer_id}}"
+  - channel: phone
+```
+
+`inject` is an ordered list of one-key items merged into the call and never advertised to the model,
+so the model can neither see the value nor overwrite it. An `inject` key that
+also names an `input` property is a compile error, for that reason.
+
+Legal on `webhook:` and `local:` only. An MCP server owns its own call shape, so
+there is nothing to merge into.
+
+When an injected variable has no value at call time, the tool refuses instead of
+sending a half formed request, and the model is told what to ask for.
+
+Use `inject` for anything the caller should not be able to change: the customer
+id, the channel, a tenant. A parameter in `input` is a parameter the model can
+invent.
+
+## The behaviour fields
+
+```yaml
+interruption: provider_default
+effect: returns_data
+announce: Let me check the calendar.
+```
+
+| Field | Values | Default | Meaning |
+|---|---|---|---|
+| `interruption` | `provider_default`, `continue`, `cancel` | `provider_default` | what happens to the call if the caller speaks while the tool runs |
+| `effect` | `returns_data`, `ends_conversation` | `returns_data` | whether the conversation continues after the tool |
+| `announce` | one sentence, or a list of alternatives | absent, nothing is spoken | a fixed line the agent speaks as the tool starts, so a slow call is not silence |
+
+A tool run by `prefetch:` carries no field of its own for this. The pre-fetch
+entry that runs it declares `writes: true` or `writes: false`, because the
+question is about that one use of the tool, not about the tool itself. See
+`variables.md`, "`writes:` is a promise, not a guarantee".
+
+All three are honoured differently per target. Pipecat maps `interruption` onto
+its own cancel-on-interruption setting. LiveKit runs tools to completion, so a
+non-default value warns there. Read the warning to the user rather than dropping
+it.
+
+### When to write `announce:`
+
+Write it on a tool that keeps the caller waiting: a webhook to a slow service, a
+handler that reads a calendar or a database. Do not write it on a fast tool, and
+do not write one on every tool. Two agents talking over each other is worse than
+a short pause.
+
+The sentence is fixed, so it is spoken word for word every time that tool runs.
+Write what the agent is **doing**, never what it expects to find, and keep it
+shorter than the wait it covers:
+
+| Write this | Not this |
+|---|---|
+| `Let me check the calendar.` | `Let me find you some great times!` |
+| `One moment while I look that up.` | `I'm querying the availability API.` |
+
+**Write a list when the tool can fire twice in one call.** One sentence is the
+same sentence every time, and a caller who books and then moves the booking
+hears it twice inside a minute, which is what a recording sounds like. Give the
+key a list and the caller hears one of them per firing, never the one that tool
+used last:
+
+```yaml
+announce:
+  - Let me check the calendar.
+  - Let me see what is free.
+  - Right, let me have a look at the diary.
+```
+
+The `slng` target takes one line, because an attachment carries a single
+pre-action message. A list there is refused by `unmute validate`, with the
+line, rather than quietly narrowed to the first entry.
+
+**On `slng`, a `builtin:` takes one too.** A curated capability is an
+attachment like any other, so `tools/current_datetime.yaml` can speak before it
+reads the clock. On `tools/end_call.yaml` the line is the goodbye: SLNG's
+`end_call` always says one before it hangs up, "Thanks for calling. Goodbye!"
+by default, and `announce:` replaces it. Do not also tell the model to say
+goodbye before it calls `end_call`, or the caller hears two. A
+code target refuses it by name: it builds the prebuilt from its own SDK and has
+no seam in front of it.
+
+If the package instructions already tell the agent to say it is checking
+something, remove that instruction when you add `announce:`. Otherwise the model
+speaks its own version and the tool speaks the fixed one, and the caller hears
+both. This is the most common way to get it wrong.
+
+The second most common way is quieter, because no instruction asks for it. The
+model opens its **next** turn with an acknowledgment of its own, so the caller
+hears "Okay, one sec." and then "A haircut, lovely. What day suits you?". The fix
+is in the prompt, not here: see `prompting.md`, "Do not say the same thing twice".
+
+Rules that will fail the compile if you break them:
+
+- Legal on `webhook:` and `local:` only. Every other kind has no body to speak
+  before. An `mcp:` file is refused at load with the line number.
+- A fixed sentence. `{{variables}}` are refused, because a rendered line would
+  need a round trip, which is the delay the field exists to hide.
+- A blank value reads as absent. Nothing is spoken and nothing is emitted.
+- Legal on a tool listed on an agent **or** on a task, on both code drivers.
+  LiveKit lowers both through one path and emits the same `session.say`. Pipecat
+  emits an agent tool as a decorated function and a task tool as a flows handler,
+  and queues the frame through `FlowManager.worker` in the second case. This rule
+  used to say a Pipecat task tool was refused by name; that was wrong, and the
+  compiler was refusing a feature that worked.
+- A target whose driver has no lowering for the field fails validation with that
+  driver's own reason. Read the error to the user rather than dropping the field.
+
+Nothing waits for the line to finish playing, on either driver. The tool's own
+work starts straight away, and the tool's `interruption:` value still decides
+what happens if the caller speaks over it.
+
+## Define once, attach by name
+
+**Define each tool once.** The full definition exists only in
+`tools/<name>.yaml`: `description`, `input`, optional `output` and `inject`, and
+one execution block. A local handler lives beside it in `tools/<handler>.py`.
+Do not put any of those fields in `agent.yaml`.
+
+Every `tools:` entry in `agent.yaml` is a string name:
+
+- the top-level list loads `tools/<name>.yaml`,
+- `agents.<name>.tools` grants an agent access, and
+- `tasks.<name>.tools` grants a task access.
+
+```yaml agent.yaml
+tools:
+  - check_slots
+  - end_call
+
+agents:
+  appointment_desk:
+    instructions: instructions.md
+    think: reasoning
+    speak: voice
+    tools:
+      - check_slots
+      - end_call
+```
+
+For a task-scoped tool, attach the same loaded name to the task instead,
+where the task is nested inside its agent:
+
+```yaml agent.yaml
+agents:
+  appointment_desk:
+    tasks:
+      - name: find_slot
+        instructions: tasks/find-slot.md
+        tools:
+          - check_slots
+```
+
+The agent and task lists are visibility scopes. Attach a tool only where it is
+called; do not grant it to both unless both really call it. Never replace a
+name with an inline mapping of `description`, `input`, `output`, `local`, or
+`webhook`.
+
+**Task `assign:` and tool `output:` are different contracts.** A tool's optional
+`output:` describes one tool call and stays in `tools/<name>.yaml`. A task's
+finish fields come from the destination variables in its `assign:` list. A task
+that saves nothing needs neither an assignment nor an invented summary.
+
+A file in `tools/` that the package level list does not name is not loaded at
+all, and nothing complains. When a tool is never offered, check that list first.
+
+Splitting tool lists is how you make a wrong action impossible rather than
+discouraged. In `examples/salon-concierge`, only the booking task holds
+`save_booking`, so no caller can talk the entry agent into booking, moving, or
+cancelling an appointment without going through the step that checks who they
+are.
+
+## Choosing a kind, from a plain English ask
+
+| The user says | Write |
+|---|---|
+| "call our booking API" | `webhook:` with `url_env` and `auth` |
+| "our API needs a signed request" | `local:`, because webhook auth is bearer and api_key only |
+| "look something up in this spreadsheet of ours" | `local:`, and say the handler is a fixture unless they wire it up |
+| "use the Firecrawl MCP server" | `mcp:` with `tools:` naming what it may use |
+| "this tool already exists in our SLNG organisation" | `slng:` naming its exact platform name; code targets also need a pulled mirror |
+| "let it hang up" | `builtin:` with `id: end_call` |
+| "let the caller's app do it" | nothing yet. `client:` is gated on every target. Say so |
+
+When it could be a webhook or a handler, ask one question: is there an HTTP
+endpoint already? If yes, webhook. If no, a handler, and say plainly that the
+handler you wrote is a stub the user has to fill in.

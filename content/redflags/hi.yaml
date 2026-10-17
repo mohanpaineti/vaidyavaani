@@ -1,0 +1,202 @@
+# content/redflags/hi.yaml — Hindi danger-sign phrase list
+#
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║   ⚠  THIS LIST IS **NOT CLINICALLY REVIEWED**.  ⚠                       ║
+# ║   Drafted by a software team for a hackathon demo. No doctor and no     ║
+# ║   hospital department has signed it off. docs/01 §5 lists a clinically  ║
+# ║   reviewed, department-specific list as EXPLICITLY LATER work.          ║
+# ║   It is a keyword tripwire that surfaces the patient's own words to the ║
+# ║   doctor — NOT triage, NOT screening, NOT complete.                     ║
+# ║   Never call this "clinically validated" on a slide or on stage.        ║
+# ║                                                                          ║
+# ║   SEPARATELY: every Hindi phrase below is LINGUISTICALLY UNVERIFIED —   ║
+# ║   tagged review: NEEDS-NATIVE-REVIEW per flag.                          ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+#
+# Matching rules, severity meanings and the negation_guards contract are
+# documented once, in content/redflags/en.yaml. Read that file first.
+#
+# Hindi-specific matching hazard: नहीं / ना / नइ (regional) all negate, and in
+# Bihari/Bhojpuri-influenced speech the negator may be नाही or ना and may sit
+# in a position the guard list does not anticipate. The guards below are a
+# best effort, NOT a parser. Layer 2 is what actually resolves negation; this
+# layer is allowed to over-flag.
+
+schema_version: 1
+language: hi
+language_name_en: Hindi
+clinically_reviewed: false
+review:
+  status: pending
+  reviewer: ""
+  clinical_reviewer: ""        # MUST stay empty for the hackathon.
+  reviewed_at: ""
+  how_to_review: >
+    Read each phrase as a migrant worker from Bihar/UP would say it, not as
+    Delhi Hindi. Add regional negators you know. Check negation_guards hardest.
+
+flags:
+  - id: chest_pain
+    english: "chest pain"
+    severity: urgent
+    phrases:
+      - "सीने में दर्द"              # seene mein dard
+      - "छाती में दर्द"
+      - "सीना दुख रहा है"
+      - "सीने में भारीपन"            # heaviness in the chest
+      - "सीने में जकड़न"             # tightness
+      - "सीने पर दबाव"
+      - "दर्द बाएँ हाथ में जा रहा है"   # pain going to the left arm
+    negation_guards:
+      - "सीने में दर्द नहीं"
+      - "छाती में दर्द नहीं"
+      - "दर्द नहीं है"
+      - "सीने में दर्द नाही"
+    note: "Patients often call this गैस. See content/glossary/hi.yaml."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: breathlessness
+    english: "breathlessness"
+    severity: urgent
+    phrases:
+      - "साँस नहीं आ रही"
+      - "साँस फूल रही है"
+      - "साँस फूल"                  # bare stem, catches फूल जाती/जाता/रही
+      - "साँस लेने में तकलीफ़"
+      - "दम घुट रहा है"             # suffocating
+      - "चलने पर हाँफ जाता हूँ"
+    negation_guards:
+      - "साँस की तकलीफ़ नहीं"
+      - "साँस ठीक है"
+    note: "CAREFUL: 'साँस नहीं आ रही' contains नहीं as part of the SYMPTOM, not a denial. Guards must be matched as whole phrases, not by looking for नहीं anywhere — this entry is the reason that rule exists."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: bleeding_in_pregnancy
+    english: "bleeding in pregnancy"
+    severity: urgent
+    phrases:
+      - "प्रेग्नेंट हूँ और खून आ रहा है"
+      - "गर्भवती हूँ खून जा रहा है"
+      - "पेट में बच्चा है और खून आ रहा है"
+      - "गर्भ में रक्तस्राव"
+    negation_guards:
+      - "खून नहीं आ रहा"
+      - "प्रेग्नेंट नहीं"
+    note: "Two-fact flag — layer 2 (the LLM) carries this one."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: fainting
+    english: "fainting / loss of consciousness"
+    severity: urgent
+    phrases:
+      - "बेहोश हो गया"
+      - "बेहोश हो गई"
+      - "गिर पड़ा था"
+      - "होश नहीं रहा"
+      - "गिरा और याद नहीं"
+    negation_guards:
+      - "बेहोश नहीं हुआ"
+      - "गिरा नहीं"
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: giddiness
+    english: "giddiness / dizziness (without a faint)"
+    severity: watch
+    phrases:
+      - "चक्कर आता है"
+      - "चक्कर आ रहा है"
+      - "सिर घूम रहा है"
+    negation_guards:
+      - "चक्कर नहीं आता"
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: self_harm
+    english: "thoughts of self-harm or suicide"
+    severity: urgent
+    phrases:
+      - "मरने का मन करता है"
+      - "जीने का मन नहीं"
+      - "जान दे दूँगा"
+      - "ख़ुदकुशी"
+      - "अब जीकर क्या करूँ"
+      - "गोली खाकर मर जाऊँ"
+    negation_guards: []        # deliberately EMPTY — see en.yaml
+    note: >
+      Note that 'जीने का मन नहीं' contains नहीं and IS a positive finding.
+      Another reason guards are whole phrases, never a नहीं search.
+      Agent says nothing to the patient and offers no counselling.
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: stroke_signs
+    english: "one-sided weakness or slurred speech"
+    severity: urgent
+    phrases:
+      - "एक तरफ़ काम नहीं कर रहा"
+      - "एक साइड सुन्न हो गया"
+      - "हाथ उठ नहीं रहा"
+      - "मुँह टेढ़ा हो गया"
+      - "बोली लड़खड़ा रही है"
+      - "बोल नहीं पा रहा"
+    negation_guards:
+      - "दोनों तरफ़"
+      - "कमज़ोरी नहीं"
+    note: "Several phrases here legitimately contain नहीं. Match guards as whole phrases. Slurred speech also degrades STT — low confidence plus this flag is more reason to look."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: fever_stiff_neck
+    english: "high fever with stiff neck"
+    severity: urgent
+    phrases:
+      - "बुख़ार और गर्दन अकड़ गई"
+      - "गर्दन झुका नहीं पा रहा"
+      - "गर्दन झुका नहीं"            # gender-neutral stem; रहा/रही both covered
+      - "तेज़ बुख़ार और सिरदर्द और गर्दन में दर्द"
+      - "रोशनी से आँख चुभती है"
+    negation_guards:
+      - "गर्दन में दर्द नहीं"
+    note: "Two-fact flag; layer 2 carries it."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: abuse_disclosure
+    english: "possible abuse or violence disclosure"
+    severity: urgent
+    phrases:
+      - "घर में मारते हैं"
+      - "पति ने मारा"
+      - "पति मारता है"               # habitual, not a single incident
+      - "बेटा मारता है"
+      - "घर में सुरक्षित नहीं हूँ"
+      - "ज़बरदस्ती की"
+      - "जला दिया"
+    negation_guards: []        # deliberately EMPTY — see en.yaml
+    note: >
+      The agent must not acknowledge this to the patient, must not ask its own
+      follow-up and must not counsel. Flag to the doctor's screen only.
+      Relatives may be in the room. A social-work reviewer should rewrite this.
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: bleeding_general
+    english: "visible bleeding"
+    severity: urgent
+    phrases:
+      - "ख़ून की उल्टी"              # vomiting blood
+      - "पाख़ाने में ख़ून"            # blood in stool
+      - "पेशाब में ख़ून"             # blood in urine
+      - "खाँसी में ख़ून"             # blood on coughing
+      - "ख़ून बंद नहीं हो रहा"        # bleeding won't stop
+    negation_guards:
+      - "ख़ून नहीं"
+    note: "'ख़ून बंद नहीं हो रहा' is a positive finding containing नहीं, and 'ख़ून नहीं' is a denial. These two will collide on a naive matcher — match the LONGEST guard and the LONGEST phrase, and prefer the phrase when both match."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: severe_dehydration_child
+    english: "possible severe dehydration (especially a child)"
+    severity: watch
+    phrases:
+      - "पेशाब नहीं हो रहा"
+      - "सुबह से पेशाब नहीं"
+      - "बच्चा सुस्त है"
+      - "बच्चा दूध नहीं पी रहा"
+    negation_guards: []
+    note: "Not in the docs/01 §3 MVP eight; drafted as an extra. A clinical reviewer may remove it."
+    review: NEEDS-NATIVE-REVIEW

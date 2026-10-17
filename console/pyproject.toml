@@ -1,0 +1,25 @@
+[project]
+name = "vaidyavaani-console"
+version = "0.1.0"
+description = "VaidyaVaani Clinic Console — the doctor's confirmation gate and the clinical record"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi==0.143.3",
+    "uvicorn[standard]==0.54.0",
+    "pydantic==2.14.1",
+    "PyYAML==6.0.3",
+    "qrcode[pil]==8.2",
+]
+
+[project.optional-dependencies]
+dev = ["pytest==9.1.1", "httpx==0.28.1"]
+
+[project.scripts]
+console = "app.main:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+filterwarnings = ["ignore::DeprecationWarning"]
+
+[tool.setuptools]
+packages = ["app"]

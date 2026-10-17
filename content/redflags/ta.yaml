@@ -1,0 +1,192 @@
+# content/redflags/ta.yaml — Tamil danger-sign phrase list
+#
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║   ⚠  THIS LIST IS **NOT CLINICALLY REVIEWED**.  ⚠                       ║
+# ║   Drafted by a software team for a hackathon demo. No doctor and no     ║
+# ║   hospital department has signed it off. docs/01 §5 lists a clinically  ║
+# ║   reviewed, department-specific list as EXPLICITLY LATER work.          ║
+# ║   It is a keyword tripwire that surfaces the patient's own words to the ║
+# ║   doctor — NOT triage, NOT screening, NOT complete. An emergency that   ║
+# ║   is not on this list will not be flagged.                              ║
+# ║   Never call this "clinically validated" on a slide or on stage.        ║
+# ║                                                                          ║
+# ║   SEPARATELY: every Tamil phrase below is also LINGUISTICALLY           ║
+# ║   UNVERIFIED — tagged review: NEEDS-NATIVE-REVIEW per flag.             ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+#
+# Matching rules, severity meanings and the negation_guards contract are
+# documented once, in content/redflags/en.yaml. Read that file first.
+# The `english` field is what the DOCTOR sees; the matched Tamil phrase is
+# quoted beside it (docs/04 §2 RedFlag.phrase).
+
+schema_version: 1
+language: ta
+language_name_en: Tamil
+clinically_reviewed: false
+review:
+  status: pending
+  reviewer: ""
+  clinical_reviewer: ""        # MUST stay empty for the hackathon.
+  reviewed_at: ""
+  how_to_review: >
+    Read each phrase aloud as a frightened patient would say it, not as it
+    would be written. Add the phrasings you have actually heard in a Chennai
+    or Bengaluru OPD. Pay special attention to negation_guards — a missing
+    guard means a flag fires on "I do NOT have chest pain".
+
+flags:
+  - id: chest_pain
+    english: "chest pain"
+    severity: urgent
+    phrases:
+      - "நெஞ்சு வலி"            # nenju vali — chest pain
+      - "நெஞ்சு வலிக்குது"       # nenju valikkuthu — my chest is paining
+      - "நெஞ்சுல வலி"           # nenjula vali
+      - "நெஞ்சு இறுக்குது"       # nenju irukkuthu — tightness in the chest
+      - "நெஞ்சுல பாரம்"         # nenjula paaram — heaviness in the chest
+      - "நெஞ்சுல அடைச்சிக்கிட்டு"  # nenjula adaichukittu — chest feels blocked up
+      - "நெஞ்சை அமுக்குது"      # nenjai amukkuthu — pressure on the chest
+      - "இடது கைக்கு வலி போகுது" # vali spreading to the left arm
+    negation_guards:
+      - "நெஞ்சு வலி இல்ல"        # nenju vali illa — no chest pain
+      - "நெஞ்சு வலி கிடையாது"    # nenju vali kidaiyaadhu
+      - "வலி இல்ல"              # vali illa — no pain
+    note: "Patients often call this கேஸ் டிரபிள் (gas trouble). See content/glossary/ta.yaml."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: breathlessness
+    english: "breathlessness"
+    severity: urgent
+    phrases:
+      - "மூச்சு வாங்குது"         # moochu vaanguthu — breathless
+      - "மூச்சு விட முடியல"      # moochu vida mudiyala — can't breathe
+      - "மூச்சு திணறல்"          # moochu thinaral — suffocating
+      - "மூச்சு வாங்குது நடக்கும்போது"  # breathless when walking
+      - "சுவாசிக்க கஷ்டமா இருக்கு"      # hard to breathe
+    negation_guards:
+      - "மூச்சு பிரச்சனை இல்ல"
+      - "மூச்சு நல்லா இருக்கு"
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: bleeding_in_pregnancy
+    english: "bleeding in pregnancy"
+    severity: urgent
+    phrases:
+      - "கர்ப்பமா இருக்கேன் ரத்தம் போகுது"   # pregnant and bleeding
+      - "வயித்துல குழந்தை இருக்கு ரத்தம் வருது"
+      - "மாசமா இருக்கேன் ரத்தம் வருது"
+      - "கர்ப்பத்துல ரத்தப்போக்கு"
+    negation_guards:
+      - "ரத்தம் வரல"
+      - "கர்ப்பமா இல்ல"
+    note: "Two-fact flag — layer 1 only catches it when both facts land in one utterance. Layer 2 (the LLM) carries this one."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: fainting
+    english: "fainting / loss of consciousness"
+    severity: urgent
+    phrases:
+      - "மயங்கி விழுந்தேன்"       # mayangi vizhunthen — I fainted and fell
+      - "மயக்கம் வந்து விழுந்தேன்"
+      - "சுயநினைவு இல்லாம போயிட்டேன்"
+      - "கீழே விழுந்தேன் ஞாபகம் இல்ல"   # fell down, don't remember
+    negation_guards:
+      - "மயங்கல"
+      - "விழல"
+    note: "மயக்கம் alone means giddiness OR a faint — see the glossary. Only the explicit 'fell / lost consciousness' phrasings are urgent here; bare மயக்கம் is in the giddiness flag below."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: giddiness
+    english: "giddiness / dizziness (without a faint)"
+    severity: watch
+    phrases:
+      - "தலைசுற்றல்"             # thalai sutral
+      - "தலை சுத்துது"           # thalai suthuthu
+      - "மயக்கமா இருக்கு"        # feeling giddy (not fainted)
+    negation_guards:
+      - "தலைசுற்றல் இல்ல"
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: self_harm
+    english: "thoughts of self-harm or suicide"
+    severity: urgent
+    phrases:
+      - "சாகணும் போல இருக்கு"      # feel like dying
+      - "செத்துடலாம்னு இருக்கு"
+      - "உயிரை விட்டுடலாம்"
+      - "வாழ்க்கை வேண்டாம்"
+      - "இருந்து என்ன பிரயோஜனம்"
+      - "மாத்திரை சாப்பிட்டு சாகணும்"
+    negation_guards: []        # deliberately EMPTY — see en.yaml
+    note: "Agent says nothing to the patient, offers no counselling. Flag to the doctor only."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: stroke_signs
+    english: "one-sided weakness or slurred speech"
+    severity: urgent
+    phrases:
+      - "ஒரு பக்கம் வேலை செய்யல"     # one side not working
+      - "ஒரு பக்கம் மரத்துப் போச்சு"   # one side gone numb
+      - "கை தூக்க முடியல"
+      - "வாய் கோணிப் போச்சு"         # mouth has twisted
+      - "பேச்சு வராம இருக்கு"
+      - "பேச்சு தடுமாறுது"
+    negation_guards:
+      - "ரெண்டு பக்கமும்"
+      - "பலவீனம் இல்ல"
+    note: "Slurred speech degrades STT. A low-confidence transcript PLUS this flag is more reason to look, not less."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: fever_stiff_neck
+    english: "high fever with stiff neck"
+    severity: urgent
+    phrases:
+      - "காய்ச்சல் கழுத்து விறைப்பு"
+      - "கழுத்து வளைக்க முடியல"      # can't bend my neck
+      - "காய்ச்சல் தலைவலி கழுத்து வலி"
+      - "வெளிச்சம் பார்க்க முடியல"     # light hurts my eyes
+    negation_guards:
+      - "கழுத்து வலி இல்ல"
+    note: "Two-fact flag; layer 2 carries it."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: abuse_disclosure
+    english: "possible abuse or violence disclosure"
+    severity: urgent
+    phrases:
+      - "வீட்ல அடிக்கிறாங்க"        # they beat me at home
+      - "புருஷன் அடிச்சான்"         # my husband hit me
+      - "மகன் அடிக்கிறான்"
+      - "வீட்ல பாதுகாப்பா இல்ல"      # not safe at home
+      - "கட்டாயப்படுத்தினாங்க"       # they forced me
+    negation_guards: []        # deliberately EMPTY — see en.yaml
+    note: >
+      The agent must not acknowledge this to the patient, must not ask its own
+      follow-up and must not counsel. Flag to the doctor's screen only.
+      Relatives may be in the room. A social-work reviewer should rewrite this.
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: bleeding_general
+    english: "visible bleeding"
+    severity: urgent
+    phrases:
+      - "ரத்த வாந்தி"             # vomiting blood
+      - "மலத்துல ரத்தம்"           # blood in stool
+      - "சிறுநீர்ல ரத்தம்"          # blood in urine
+      - "இருமும்போது ரத்தம்"       # coughing blood
+      - "ரத்தம் நிக்கல"            # bleeding won't stop
+    negation_guards:
+      - "ரத்தம் இல்ல"
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: severe_dehydration_child
+    english: "possible severe dehydration (especially a child)"
+    severity: watch
+    phrases:
+      - "சிறுநீர் போகல"            # not passing urine
+      - "காலையில இருந்து சிறுநீர் இல்ல"
+      - "குழந்தை சோர்ந்து போயிருக்கு"
+      - "குழந்தை பால் குடிக்கல"
+    negation_guards: []
+    note: "Not in the docs/01 §3 MVP eight; drafted as an extra. A clinical reviewer may remove it."
+    review: NEEDS-NATIVE-REVIEW

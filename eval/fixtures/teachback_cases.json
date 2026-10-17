@@ -1,0 +1,189 @@
+{
+  "_comment": [
+    "Five DELIBERATELY WRONG read-backs, per docs/01 §5 F6 and §7 ('Seed 5 deliberately",
+    "wrong read-backs' -> target 5/5 flagged). Each case is what the patient said back,",
+    "already transcribed and translated to a structure — the model's ONLY job in the real",
+    "flow is supplying `patient_said` (docs/04 §2 TeachBackResult). Every verdict is",
+    "computed in Python, numbers compared arithmetically.",
+    "These are mechanical structures, not patient-facing strings, so they carry no",
+    "NEEDS-NATIVE-REVIEW tag. The Tamil/Kannada/Hindi WORDS a patient would use to say",
+    "these back are in eval/sentences/*.csv, which are tagged.",
+    "tb-5 was rewritten on 2026-10-17 when docs/04 §2 changed schedule from int to multiples of 0.5: it now prescribes half a tablet and has the patient say one, which any int-based comparison scores as a match and therefore misses."
+  ],
+  "cases": [
+    {
+      "id": "tb-1",
+      "why_wrong": "duration halved — patient heard 5 days as 2 days",
+      "language": "ta",
+      "confirmed": {
+        "id": "rx_1",
+        "drug_text": "Paracetamol",
+        "strength_value": 500,
+        "strength_unit": "mg",
+        "form": "tablet",
+        "schedule": {
+          "morning": 1,
+          "afternoon": 0,
+          "night": 1
+        },
+        "food_relation": "after_food",
+        "duration_days": 5,
+        "notes": null
+      },
+      "patient_said": {
+        "morning": 1,
+        "night": 1,
+        "duration_days": 2
+      },
+      "expect_overall": "mismatch",
+      "expect_mismatched_fields": [
+        "rx_1.duration"
+      ]
+    },
+    {
+      "id": "tb-2",
+      "why_wrong": "night dose dropped entirely — the most dangerous kind of miss",
+      "language": "kn",
+      "confirmed": {
+        "id": "rx_1",
+        "drug_text": "Metformin",
+        "strength_value": 500,
+        "strength_unit": "mg",
+        "form": "tablet",
+        "schedule": {
+          "morning": 1,
+          "afternoon": 0,
+          "night": 1
+        },
+        "food_relation": "with_food",
+        "duration_days": 90,
+        "notes": null
+      },
+      "patient_said": {
+        "morning": 1,
+        "night": 0,
+        "duration_days": 90
+      },
+      "expect_overall": "mismatch",
+      "expect_mismatched_fields": [
+        "rx_1.night"
+      ]
+    },
+    {
+      "id": "tb-3",
+      "why_wrong": "count doubled — patient will take two tablets instead of one",
+      "language": "hi",
+      "confirmed": {
+        "id": "rx_1",
+        "drug_text": "Cetirizine",
+        "strength_value": 10,
+        "strength_unit": "mg",
+        "form": "tablet",
+        "schedule": {
+          "morning": 0,
+          "afternoon": 0,
+          "night": 1
+        },
+        "food_relation": null,
+        "duration_days": 3,
+        "notes": null
+      },
+      "patient_said": {
+        "night": 2,
+        "duration_days": 3
+      },
+      "expect_overall": "mismatch",
+      "expect_mismatched_fields": [
+        "rx_1.night"
+      ]
+    },
+    {
+      "id": "tb-4",
+      "why_wrong": "food relation flipped — before food instead of after food",
+      "language": "ta",
+      "confirmed": {
+        "id": "rx_1",
+        "drug_text": "Augmentin",
+        "strength_value": 625,
+        "strength_unit": "mg",
+        "form": "tablet",
+        "schedule": {
+          "morning": 1,
+          "afternoon": 0,
+          "night": 1
+        },
+        "food_relation": "after_food",
+        "duration_days": 7,
+        "notes": "finish the full course"
+      },
+      "patient_said": {
+        "morning": 1,
+        "night": 1,
+        "duration_days": 7,
+        "food_relation": "before_food"
+      },
+      "expect_overall": "mismatch",
+      "expect_mismatched_fields": [
+        "rx_1.food_relation"
+      ]
+    },
+    {
+      "id": "tb-5",
+      "why_wrong": "half heard as whole (double dose) AND a night dose invented — the case that fails if anything compares schedules as int",
+      "language": "kn",
+      "confirmed": {
+        "id": "rx_1",
+        "drug_text": "Thyronorm",
+        "strength_value": null,
+        "strength_unit": null,
+        "form": "tablet",
+        "schedule": {
+          "morning": 0.5,
+          "afternoon": 0,
+          "night": 0
+        },
+        "food_relation": "before_food",
+        "duration_days": 60,
+        "notes": null
+      },
+      "patient_said": {
+        "morning": 1,
+        "night": 1,
+        "duration_days": 60
+      },
+      "expect_overall": "mismatch",
+      "expect_mismatched_fields": [
+        "rx_1.morning",
+        "rx_1.night"
+      ]
+    },
+    {
+      "id": "tb-6-control",
+      "why_wrong": "NOT wrong — a correct teach-back. The control. If this one flags, the comparator over-flags and the 5/5 number is worthless.",
+      "language": "hi",
+      "confirmed": {
+        "id": "rx_1",
+        "drug_text": "Paracetamol",
+        "strength_value": 500,
+        "strength_unit": "mg",
+        "form": "tablet",
+        "schedule": {
+          "morning": 1,
+          "afternoon": 0,
+          "night": 1
+        },
+        "food_relation": "after_food",
+        "duration_days": 5,
+        "notes": null
+      },
+      "patient_said": {
+        "morning": 1,
+        "night": 1,
+        "duration_days": 5,
+        "food_relation": "after_food"
+      },
+      "expect_overall": "match",
+      "expect_mismatched_fields": []
+    }
+  ]
+}

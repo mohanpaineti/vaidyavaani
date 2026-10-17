@@ -1,0 +1,41 @@
+description: >
+  Ask the console to keep the confirmed instructions as a voice note the patient
+  can take home, and to show its QR code on the patient's half of the screen.
+  Call it once, after the read-back and teach-back are done. Pass the confirmed
+  read-back sentence exactly as it was given to you, with nothing added.
+
+input:
+  type: object
+  properties:
+    text:
+      type: string
+      description: The confirmed read-back sentence, word for word.
+    language:
+      type: string
+      description: The patient's language, as a two-letter code such as ta, kn or hi.
+  required:
+    - text
+    - language
+
+inject:
+  - session_id: "{{state.session_id}}"
+
+output:
+  type: object
+  properties:
+    status:
+      type: string
+      enum:
+        - created
+        - failed
+    token:
+      type: string
+    url:
+      type: string
+    qr_data_uri:
+      type: string
+  required:
+    - status
+
+local:
+  handler: tools/create_voice_note.py

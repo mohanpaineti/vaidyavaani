@@ -1,0 +1,238 @@
+# content/redflags/en.yaml — English danger-sign phrase list (doctor side, and
+# the English-speaking-patient case)
+#
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║                                                                          ║
+# ║   ⚠  THIS LIST IS **NOT CLINICALLY REVIEWED**.  ⚠                       ║
+# ║                                                                          ║
+# ║   It was drafted by a software team for a hackathon demo. No doctor,    ║
+# ║   no emergency physician and no hospital department has signed it off.  ║
+# ║   docs/01-product-plan.md §5 lists "clinically reviewed red-flag lists  ║
+# ║   per department" as EXPLICITLY LATER work, and that is still true.     ║
+# ║                                                                          ║
+# ║   What this list is:   a keyword tripwire that puts a phrase the        ║
+# ║                        patient actually said in front of the doctor,    ║
+# ║                        faster than the doctor could have read it.       ║
+# ║   What it is NOT:      triage, a screening instrument, a clinical       ║
+# ║                        decision rule, or any kind of completeness       ║
+# ║                        guarantee. A patient having an emergency that is ║
+# ║                        not on this list will not be flagged.            ║
+# ║                                                                          ║
+# ║   Nobody may describe this on stage or on a slide as "clinically        ║
+# ║   validated", "department-approved" or "screened". Overstating it would ║
+# ║   be the worst error this project could make.                           ║
+# ║                                                                          ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+#
+# How it is used (docs/01 §3 step 3):
+#  * Layer 1 (this file): substring match against PARTIAL transcripts, so the
+#    flag can appear mid-sentence at zero added latency.
+#  * Layer 2: the translation call returns red_flags[], which UPGRADES or
+#    CLEARS a layer-1 flag. `source` in the emitted RedFlag is "keyword" here.
+#  * The flag appears on the DOCTOR's screen in English with the patient's
+#    original phrase quoted (docs/04 §2 RedFlag). The patient is told nothing,
+#    and the agent never advises.
+#
+# severity ∈ watch | urgent  (docs/04 §2)
+#  urgent — a reasonable clinician would want to look NOW
+#  watch  — worth the doctor's eye this consultation, not necessarily now
+# When drafting was ambiguous we chose the HIGHER severity. A false urgent
+# costs a glance; a false watch costs more. A clinical reviewer may well
+# downgrade several of these, and should.
+#
+# MATCHING RULES for console/app (layer 1):
+#  * Case-insensitive, Unicode-normalised (NFC) substring match.
+#  * Match on the partial transcript as it streams.
+#  * `negation_guards`: if any guard phrase appears within the same utterance,
+#    SUPPRESS the flag. "no chest pain" must not raise a chest-pain flag — the
+#    flipped-negation failure is the one docs/01 §6 calls out by name, and it
+#    bites here as well as in translation.
+#  * A suppressed flag is still LOGGED (as suppressed), so the eval can count
+#    how often the guard fired and whether it ever fired wrongly.
+
+schema_version: 1
+language: en
+language_name_en: English
+clinically_reviewed: false
+review:
+  status: pending
+  reviewer: ""
+  clinical_reviewer: ""        # MUST stay empty for the hackathon. See banner.
+  reviewed_at: ""
+
+flags:
+  - id: chest_pain
+    english: "chest pain"
+    severity: urgent
+    phrases:
+      - "chest pain"
+      - "pain in my chest"
+      - "pain in the chest"
+      - "chest is paining"
+      - "tightness in my chest"
+      - "heaviness in my chest"
+      - "pressure in my chest"
+      - "something heavy on my chest"
+      - "pain going to my left arm"
+      - "pain in my jaw and chest"
+    negation_guards: ["no chest pain", "not chest pain", "chest pain nahi", "no pain in my chest", "chest is fine"]
+    note: "Patients often say 'gas' for this — see the gas/gastric entries in the glossaries."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: breathlessness
+    english: "breathlessness"
+    severity: urgent
+    phrases:
+      - "can't breathe"
+      - "cannot breathe"
+      - "breathless"
+      - "short of breath"
+      - "difficulty breathing"
+      - "hard to breathe"
+      - "gasping"
+      - "suffocating"
+      - "breathing problem"
+      - "winded walking"
+    negation_guards: ["no breathing problem", "breathing is fine", "no difficulty breathing"]
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: bleeding_in_pregnancy
+    english: "bleeding in pregnancy"
+    severity: urgent
+    phrases:
+      - "bleeding and i am pregnant"
+      - "pregnant and bleeding"
+      - "spotting in pregnancy"
+      - "bleeding during pregnancy"
+      - "blood coming and i am pregnant"
+      - "missed period and bleeding"
+      - "bleeding in my third month"
+    negation_guards: ["not pregnant", "no bleeding"]
+    note: "Layer 1 cannot reliably combine two facts across a sentence. Layer 2 (the LLM) is doing the real work for this flag; keyword matching will miss split mentions."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: fainting
+    english: "fainting / loss of consciousness"
+    severity: urgent
+    phrases:
+      - "i fainted"
+      - "fainted"
+      - "passed out"
+      - "blacked out"
+      - "lost consciousness"
+      - "fell down and don't remember"
+      - "became unconscious"
+    negation_guards: ["did not faint", "didn't faint", "no fainting", "almost fainted but did not"]
+    note: "Distinguish from plain giddiness, which is 'watch'. In Tamil மயக்கம் covers BOTH — see the glossary note."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: giddiness
+    english: "giddiness / dizziness (without a faint)"
+    severity: watch
+    phrases:
+      - "giddiness"
+      - "giddy"
+      - "dizzy"
+      - "head spinning"
+      - "room is spinning"
+    negation_guards: ["no giddiness", "not dizzy"]
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: self_harm
+    english: "thoughts of self-harm or suicide"
+    severity: urgent
+    phrases:
+      - "want to die"
+      - "end my life"
+      - "kill myself"
+      - "no point living"
+      - "better if i die"
+      - "tired of living"
+      - "took tablets to die"
+      - "harm myself"
+    negation_guards: []          # deliberately EMPTY — see note
+    note: >
+      No negation guards here on purpose. A false positive costs the doctor one
+      gentle question; a suppressed true positive is unacceptable. The agent
+      says NOTHING to the patient and offers NO counselling (docs/01 §6) — it
+      raises the flag to the doctor, who handles it as a human.
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: stroke_signs
+    english: "one-sided weakness or slurred speech"
+    severity: urgent
+    phrases:
+      - "one side is weak"
+      - "left side not working"
+      - "right side not working"
+      - "can't lift my arm"
+      - "face is twisted"
+      - "mouth is twisted"
+      - "speech is slurred"
+      - "words are not coming"
+      - "cannot speak properly"
+      - "hand went numb on one side"
+    negation_guards: ["both sides", "no weakness"]
+    note: "Slurred speech also degrades STT, so this flag may fire on a transcript that is itself unreliable. Treat a low-confidence transcript plus this flag as MORE reason to look, not less."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: fever_stiff_neck
+    english: "high fever with stiff neck"
+    severity: urgent
+    phrases:
+      - "fever and neck is stiff"
+      - "high fever and stiff neck"
+      - "neck won't bend"
+      - "cannot bend my neck"
+      - "fever and light hurts my eyes"
+      - "fever with severe headache and neck pain"
+    negation_guards: ["neck is fine", "no neck pain"]
+    note: "Two-fact flag; layer 1 only catches it when both facts land in one utterance. Layer 2 carries this one."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: abuse_disclosure
+    english: "possible abuse or violence disclosure"
+    severity: urgent
+    phrases:
+      - "my husband hit me"
+      - "he beat me"
+      - "they beat me at home"
+      - "i am being beaten"
+      - "someone forced me"
+      - "my son hits me"
+      - "i am not safe at home"
+      - "he burnt me"
+    negation_guards: []          # deliberately EMPTY — see note
+    note: >
+      No negation guards, same reasoning as self_harm. The agent must not
+      acknowledge this to the patient, must not ask a follow-up of its own and
+      must not counsel — the flag goes to the doctor's screen only. Relatives
+      may be in the room; docs/01 §6 says the doctor can ask them out.
+      A clinical/social-work reviewer should rewrite this entry entirely.
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: bleeding_general
+    english: "visible bleeding"
+    severity: urgent
+    phrases:
+      - "vomiting blood"
+      - "blood in my vomit"
+      - "blood in my stool"
+      - "blood in my urine"
+      - "coughing up blood"
+      - "bleeding will not stop"
+    negation_guards: ["no blood", "no bleeding"]
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: severe_dehydration_child
+    english: "possible severe dehydration (especially a child)"
+    severity: watch
+    phrases:
+      - "not passing urine"
+      - "no urine since morning"
+      - "child is very dull"
+      - "baby is not drinking"
+      - "eyes have sunk"
+    negation_guards: []
+    note: "Not in the docs/01 §3 MVP eight. Drafted as an extra because it is common in an urban health centre. A clinical reviewer may remove it."
+    review: NEEDS-NATIVE-REVIEW

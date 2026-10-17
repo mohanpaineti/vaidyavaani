@@ -1,0 +1,49 @@
+description: >
+  Tell the doctor, on their half of the screen only, that the patient said
+  something that may be a danger sign. Call it as well as interpreting the turn
+  normally, never instead. This never reaches the patient: do not say anything
+  about the flag aloud, do not advise, do not reassure, and do not diagnose.
+  Flag chest pain, breathlessness, bleeding in pregnancy, fainting, thoughts of
+  self-harm, one-sided weakness or slurred speech, high fever with a stiff neck,
+  and any disclosure of abuse.
+
+input:
+  type: object
+  properties:
+    phrase:
+      type: string
+      description: The exact words the patient used, in their own language.
+    english:
+      type: string
+      description: What that phrase means in English, as plainly as possible.
+    severity:
+      type: string
+      description: urgent when it may need attention now; watch when it is worth the doctor's notice.
+      enum:
+        - watch
+        - urgent
+    source:
+      type: string
+      description: Always llm when you raise it from what you understood.
+      enum:
+        - keyword
+        - llm
+  required:
+    - phrase
+    - english
+    - severity
+    - source
+
+inject:
+  - session_id: "{{state.session_id}}"
+
+output:
+  type: object
+  properties:
+    ok:
+      type: boolean
+  required:
+    - ok
+
+local:
+  handler: tools/raise_red_flag.py

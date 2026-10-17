@@ -1,0 +1,475 @@
+# VaidyaVaani — a two-way voice interpreter for a government hospital consultation.
+#
+# The division of labour behind this file: unmute owns the conversation, the
+# Clinic Console owns the clinical record. Anything that must be exactly right
+# — a dose, a comparison, a template — is Python in the console. Anything that
+# must be natural — turn-taking, phrasing, asking again — is here.
+#
+# Read with docs/02-technical-architecture.md §3.1 and docs/04-interfaces.md.
+version: 1
+name: vaidyavaani
+entry_agent: greeter
+architecture: cascade
+
+# ─────────────────────────────────────────────────────────────────────────────
+# MODEL AND VOICE IDS — VERIFIED, with ONE exception
+#
+# docs/03-p0-findings.md (setup-infra) smoke-called every id below against the
+# India gateway. Saaras v3, Bulbul v3 with the bare voice name `anand`,
+# deepgram/nova:3 and soniox/speech-ai:rt-v5 are all real and reachable with
+# world_part: in. Three of docs/02's guesses were wrong and are corrected here;
+# each correction is commented at the binding it applies to.
+#
+# THE ONE REMAINING BLOCKER IS `think` — see the long note on models.think
+# below. The SLNG Context Router has no org config provisioned, so no model id
+# resolves through it at all. This package therefore binds `think` to a direct
+# provider so that the agent can think, which costs us the router's cache and
+# the "SLNG end-to-end" slide. Re-read that note before changing it back.
+#
+# Residency is NOT uniform, and the slide must not say it is (docs/03 §4):
+#   sarvam/saaras:v3        hosted_in: in   cross_region: false   ✅ India
+#   sarvam/bulbul:v3        hosted_in: in   cross_region: false   ✅ India
+#   deepgram/nova:3         hosted_in: au   cross_region: true    → Australia
+#   soniox/speech-ai:rt-v5  hosted_in: jp   cross_region: true    → Japan
+# The two models carrying the consultation stay in India. The moment the STT
+# fallback trips, audio leaves the country. That is a deliberate choice of
+# availability over residency on the fallback path, and the failover beat and
+# the residency claim are in tension — say so rather than letting a judge find
+# it. With a direct `think` binding, thinking leaves India too.
+# ─────────────────────────────────────────────────────────────────────────────
+
+secrets:
+  # Listen and speak both reach SLNG with this one key.
+  - SLNG_API_KEY
+  # The reasoning model's own key. Needed whichever way `think` is bound: a
+  # direct provider uses it directly, and the Context Router forwards it
+  # upstream. ⚠ Nobody has confirmed the team actually has this key — it is
+  # the last thing standing between this package and a talking agent.
+  - OPENAI_API_KEY
+  # Read by the local tool handlers; the console checks the token on every call.
+  - CONSOLE_URL
+  - CONSOLE_TOKEN
+
+models:
+  think:
+    # ⚠ THE ONE REMAINING BLOCKER, and the biggest change from docs/02.
+    #
+    # docs/02 §0 and §3.1 specify the SLNG Context Router — `provider: slng`
+    # with `model: slng/auto`. Two separate things are wrong with that:
+    #
+    #   1. `slng/auto` does not exist. The router has no auto-select spelling;
+    #      a router binding names a real model id, because the router is a
+    #      cache in front of YOUR model, not a model of its own.
+    #   2. More seriously, the org has NO router configuration provisioned.
+    #      Every id tried against https://in.context-router.slng.ai/v1 —
+    #      slng/auto, gpt-5.6-luna, gpt-4o-mini — returns HTTP 400
+    #      "no org config found for org 2afc4597-...". The endpoint is
+    #      reachable and the key authenticates; there is simply no mapping from
+    #      model ids to upstreams. That is org-side provisioning in the SLNG
+    #      dashboard, not a YAML fix (docs/03 §5).
+    #
+    # So a `provider: slng` think binding cannot answer a single turn today,
+    # whatever is named in it. This binding is therefore DIRECT, so that P1 is
+    # not blocked waiting on provisioning. What that costs, honestly: the
+    # router's cache, the per-agent cache scoping that would have kept the
+    # three language agents from serving each other's cached lines, and the
+    # "SLNG end-to-end" line on the architecture slide. Thinking also leaves
+    # India, which the residency slide must now say.
+    #
+    # To switch back once an org config exists — and only after a direct curl
+    # to the router returns 200 with content — replace this binding with:
+    #
+    #   router:
+    #     provider: slng
+    #     model: "<a real id the org config maps>"
+    #     agent_id: vaidyavaani-v1      # one value for the whole package; the
+    #                                   # compiler scopes each agent and task
+    #                                   # under it automatically, which is what
+    #                                   # keeps the three language agents from
+    #                                   # serving each other's cached lines
+    #     upstream:
+    #       provider: openai            # or openai-compat | azure | vertex | bedrock
+    #     temperature: 0
+    #     params:
+    #       world_part: in              # required on a router binding
+    #       reasoning_effort: "none"
+    #
+    # ...and change every agent's `think: reasoning` back to `think: router`.
+    reasoning:
+      description: reasoning model, bound direct — the Context Router is not provisioned
+      provider: openai
+      # ⚠ The team's own model choice and credential. Validation passes
+      # whatever is written here, so this is confirmed only by a 200 from the
+      # provider.
+      model: "gpt-5.6-terra"
+      temperature: 0 # a dose is not a place for sampling
+      params:
+        # Mandatory in practice, not optional: every agent in this package has
+        # tools, and the gpt-5.6 family returns 400 "Function tools with
+        # reasoning_effort are not supported" on every tool turn without it.
+        reasoning_effort: "none"
+        # NOTE: no `world_part` here. It is consumed by SLNG bindings only; on
+        # a direct provider an unrecognised param rides the request body
+        # straight to the vendor, which would reject it.
+
+  listen:
+    # ONE listen entry for BOTH sides of the consultation, and this is now
+    # CONFIRMED rather than assumed (docs/03 §6): Saaras v3 auto-detects and
+    # ignores a `language:` hint, so the same stream returned clean English for
+    # the doctor and clean Tamil for the patient across six tested
+    # combinations, with code-mix coming back as interleaved scripts. So there
+    # is no `language:` here, and no code-mix parameter is needed — docs/02
+    # §12.1 worried about one and it turns out not to exist. The per-language
+    # listen fallback docs/02 §11 held in reserve is not needed either.
+    #
+    # Caveat worth knowing: that is Saaras's own behaviour, not unmute's.
+    # unmute cannot vary language mid-call, so if the fallback chain trips we
+    # are relying on models that are NOT known to auto-detect this way.
+    indic:
+      description: Indic + English + code-mix, serves patient and doctor alike
+      provider: slng
+      model: "sarvam/saaras:v3" # confirmed present, India-hosted, India-served
+      params:
+        world_part: in
+      # The live failover demo. Compiles to stt.FallbackAdapter wrapping
+      # primary + backups — generated, not our code, which is the point of
+      # showing it. ⚠ But see the residency table at the top of this file:
+      # both backups leave India, and neither is known to auto-detect Indic
+      # audio the way Saaras does. docs/03 §11 lists failover transcript
+      # quality as untested, so check the TRANSCRIPT during the failover beat,
+      # not just that audio kept flowing. deepgram/nova:3 may need
+      # `language: multi` to do anything useful with Indic speech.
+      fallback:
+        - multi_backup
+        - soniox_backup
+    multi_backup:
+      description: 48 languages, vendor endpoint proxied through SLNG — hosted in au
+      provider: slng
+      model: "deepgram/nova:3" # confirmed present and reachable with world_part: in
+      params:
+        world_part: in
+    soniox_backup:
+      description: 53 languages, ultra-low latency — hosted in jp
+      provider: slng
+      model: "soniox/speech-ai:rt-v5" # confirmed present and reachable with world_part: in
+      params:
+        world_part: in
+
+  speak:
+    # One speak entry per patient language, because `speak` IS per-agent while
+    # `language` lives only on the model entry. That is why there are three
+    # interpreter agents rather than one agent that switches language.
+    #
+    # ⚠ READ BOTH HALVES OF THIS, THEY POINT OPPOSITE WAYS AND BOTH ARE TRUE.
+    #
+    # `voice:` is a BARE NAME. `language:` is REGIONED. The two fields sit one
+    # line apart and take different forms of the same language, and getting
+    # either one wrong validates green, compiles green, and fails the first
+    # time the agent speaks.
+    #
+    #   voice: anand        ✅        voice: ta-IN-anand   ❌ "Speaker ... is not recognized"
+    #   language: ta-IN     ✅        language: ta         ❌ 422 at the first utterance
+    #
+    # The voice half (docs/03 §3): the catalog advertises 368 scoped voices but
+    # Sarvam rejects them, and there is no `hi-IN-*` voice at all. Only the 37
+    # bare names work, and `voice:` is required. `anand` was verified by live
+    # synthesis to cover all three languages plus English, which is why one
+    # name appears three times here.
+    #
+    # The language half, found by the FIRST LIVE TURN and by nothing before it:
+    # bare codes are refused. Bulbul's `target_language_code` takes the
+    # regioned form only, and the 422 enumerates the whole accepted set, so
+    # this list is authoritative rather than inferred:
+    #
+    #   bn-IN en-IN gu-IN hi-IN kn-IN ml-IN mr-IN od-IN pa-IN ta-IN te-IN
+    #
+    # `retryable=False`, so the listen fallback chain does not absorb it: with
+    # a bare code EVERY patient-facing utterance in all three languages fails,
+    # every time. unmute passes the string through untouched — the skill calls
+    # it "a fixed BCP-47 language tag" and says the accepted set is the
+    # provider's — which is exactly why neither validate nor compile can catch
+    # this. Only a live turn can.
+    #
+    # Do NOT propagate the regioned form anywhere else. `state.patient_language`
+    # is bare `ta|kn|hi` by docs/04 §6 and console/tests/test_contract.py, and
+    # the `language` input on create_voice_note is bare because the console
+    # keys content/readback/{ta,kn,hi}.yaml on it. Three different spellings of
+    # the same idea, each right in its own place.
+    #
+    # Nobody has yet LISTENED to any of this, so accent and intelligibility
+    # remain a native-speaker call.
+    #
+    # No `speed:` on any of these — Sarvam rejects it. Pace comes from the
+    # punctuation in the read-back template instead.
+    #
+    # ENGLISH: there is no fourth entry for it and there must not be. `speak`
+    # is per-agent and `language` is fixed per entry, so the English the
+    # interpreter speaks TO THE DOCTOR is synthesized through whichever of
+    # these three the agent holds. en-IN is in the accepted set, but binding an
+    # agent to it would synthesize the patient's own language under an English
+    # code — and the patient is the one who cannot read the screen. The
+    # patient's language wins each entry; English rides through it. See
+    # README.md, "English through an Indic language code".
+    bulbul_ta:
+      description: Tamil patient voice
+      provider: slng
+      model: "sarvam/bulbul:v3" # confirmed, India-hosted, India-served
+      voice: anand
+      language: ta-IN
+      params:
+        world_part: in
+    bulbul_kn:
+      description: Kannada patient voice, and the greeter's opener
+      provider: slng
+      model: "sarvam/bulbul:v3"
+      voice: anand
+      language: kn-IN
+      params:
+        world_part: in
+    bulbul_hi:
+      description: Hindi patient voice
+      provider: slng
+      model: "sarvam/bulbul:v3"
+      voice: anand
+      language: hi-IN
+      params:
+        world_part: in
+
+  turn:
+    # Aggressive on purpose. The usual responsive-vs-cutting-people-off
+    # tradeoff disappears because the browser publishes the mic track only
+    # while a button is held: releasing it is an explicit end of turn, so a
+    # snappy pace and the 250ms floor cannot clip anybody mid-sentence. Which
+    # also means the client-side mute must actually work, or this setting will
+    # cut people off.
+    #
+    # NOT `model: silero` as docs/02 §1.3 wrote it — that is a compile error.
+    # Silero is a VAD, not a turn detector, and LiveKit checks the identity.
+    #
+    # ⚠ And do not use this as a privacy point. It lowers to
+    # `inference.TurnDetector(version="v1-mini")` — LiveKit Inference, i.e.
+    # CLOUD. The compile report says so: "turn role lowers to LiveKit Inference
+    # turn detection; its binding placement is advisory." Only the VAD is
+    # local silero. docs/02 §1.3's "local silero" framing is half right.
+    #
+    # endpointing_delay is the FLOOR, not the delay. This compiles to
+    # endpointing={"mode": "dynamic", "min_delay": 0.25, "max_delay": 1.2}, so
+    # quote 250ms as the floor and 1.2s as the ceiling.
+    detector:
+      provider: livekit
+      model: turn-detector-mini
+      pace: snappy
+      endpointing_delay: 250ms # LiveKit's floor; under it is refused
+
+listen: indic
+turn: detector
+
+variables:
+  # The console creates the session and passes its id in at call start. Every
+  # tool below injects it so the console can route the call to the right
+  # screen; the model never sees it and cannot invent one.
+  - name: session_id
+    source: call_start
+
+  # Staff may preset the language on the console before the call, in which case
+  # it arrives here and detect_language has nothing to settle. Otherwise it is
+  # empty at call start and the greeter's detect_language task assigns it.
+  - name: patient_language
+    source: call_start
+
+conversation:
+  greeting:
+    speaks_first: agent
+    # Kannada + English — the one thing the agent can say before it knows
+    # anything about the patient. Spoken word for word, without the model.
+    text: "ನಮಸ್ಕಾರ. Please hold your button and speak in your own language."
+  interruption:
+    # A new button press cuts playback, so the doctor can always talk over the
+    # agent. In a consultation that matters more than letting it finish.
+    enabled: true
+
+channels:
+  web:
+    kind: realtime_audio # a room on a tablet, not a phone call
+
+capacity:
+  peak_sessions: 2
+  max_sessions: 5
+  avg_session_duration: 10m
+
+tools:
+  - push_turn
+  - raise_red_flag
+  - publish_draft_rx
+  - await_doctor_confirmation
+  - compare_teachback
+  - create_voice_note
+  - log_unsupported_language
+
+agents:
+  # The greeter exists to answer one question — which language is this? — and
+  # then get out of the way. It speaks Kannada because Bengaluru is where the
+  # tablet is, and the greeting is bilingual.
+  greeter:
+    instructions: instructions/greeter.md
+    think: reasoning
+    speak: bulbul_kn
+    tools:
+      - log_unsupported_language
+    tasks:
+      - name: detect_language
+        when: At the start of the call, before anything else, to find out which language the patient is speaking.
+        instructions: tasks/detect-language.md
+        assign:
+          - patient_language: result.language
+    handoffs:
+      - to_ta
+      - to_kn
+      - to_hi
+
+  # Three agents, identical but for the voice they speak with. The
+  # consultation tasks are defined once here and named by the other two, so
+  # there is exactly one copy of the clinical logic in the package.
+  interpreter_ta:
+    instructions: instructions/interpreter.md
+    think: reasoning
+    speak: bulbul_ta
+    task_groups:
+      - consultation
+    tasks:
+      - name: get_consent
+        instructions: tasks/get-consent.md
+        assign:
+          - consent_given: result.consent_given
+
+      - name: interpret
+        instructions: tasks/interpret.md
+        tools:
+          - push_turn
+          - raise_red_flag
+
+      - name: capture_prescription
+        instructions: tasks/capture-prescription.md
+        tools:
+          - publish_draft_rx
+        assign:
+          - prescription: result.lines
+
+      # ── THE GATE ──────────────────────────────────────────────────────────
+      # This task ends only when await_doctor_confirmation returns
+      # status: confirmed. The console returns pending until a human taps, and
+      # anything else goes back to the model with the task still open — the
+      # model cannot talk its way past it. `success:` values must appear in the
+      # tool's output enum, so a typo here is a compile error rather than a
+      # runtime surprise. And because read_back is the next step of the group
+      # and reads {{state.readback_text}}, which only this task assigns, there
+      # is no path from the prescription stage to the read-back stage that does
+      # not run through this tool.
+      - name: confirm_prescription
+        instructions: tasks/confirm-prescription.md
+        tools:
+          - await_doctor_confirmation
+        finish:
+          - tool: await_doctor_confirmation
+            success:
+              - status: confirmed
+        assign:
+          # `prescription_confirmed: true` as docs/02 §3.3 wrote it is refused:
+          # an assign value must be result.<field>, never a literal. So the gate
+          # tool returns a `confirmed` boolean alongside `status`, and the flag
+          # in state comes from the console's own answer rather than from a
+          # constant written here. See README.md "Deviations".
+          - prescription_confirmed: result.confirmed
+          - readback_text: result.readback_text
+      # ──────────────────────────────────────────────────────────────────────
+
+      # history: reset means this task gets no earlier conversation at all —
+      # not even the sentence that triggered it. Nothing to rephrase from, no
+      # patient question to be helpful about: just the one string to read.
+      - name: read_back
+        instructions: tasks/read-back.md
+        context:
+          history: reset
+
+      # The verdict comes from the console, not from the model. `finish:` on
+      # compare_teachback means the task ends on the tool's own result and
+      # assigns from it, so the model never gets to decide whether the patient
+      # got it right. not_attempted is not a success value, so a console that
+      # could not answer leaves the task open and the agent asks again.
+      - name: teach_back
+        instructions: tasks/teach-back.md
+        tools:
+          - compare_teachback
+        finish:
+          - tool: compare_teachback
+            success:
+              - overall:
+                  - match
+                  - mismatch
+        assign:
+          - teachback: result.teachback
+
+      # Also finished by its tool, for two reasons: the token is the console's
+      # to issue, and a `finish:` tool's result never reaches the model, which
+      # keeps the base64 QR data URI out of the prompt.
+      - name: take_home
+        instructions: tasks/take-home.md
+        tools:
+          - create_voice_note
+        finish:
+          - tool: create_voice_note
+            success:
+              - status: created
+        assign:
+          - voice_note_token: result.token
+
+  interpreter_kn:
+    instructions: instructions/interpreter.md
+    think: reasoning
+    speak: bulbul_kn
+    task_groups:
+      - consultation
+
+  interpreter_hi:
+    instructions: instructions/interpreter.md
+    think: reasoning
+    speak: bulbul_hi
+    task_groups:
+      - consultation
+
+# Handoffs are permanent in unmute, which is exactly right here: once you know
+# the patient speaks Tamil you never go back, and the voice does not change
+# mid-visit. A re-switch is a session restart or a staff tap on the console,
+# not a handoff ping-pong.
+handoffs:
+  to_ta:
+    to: interpreter_ta
+    when: The patient is speaking Tamil.
+    context:
+      history: messages
+  to_kn:
+    to: interpreter_kn
+    when: The patient is speaking Kannada.
+    context:
+      history: messages
+  to_hi:
+    to: interpreter_hi
+    when: The patient is speaking Hindi.
+    context:
+      history: messages
+
+# The six-step consultation flow of docs/01 §3, as a fixed order. `then: end`
+# because after the take-home step the visit is over.
+task_groups:
+  consultation:
+    when: The patient's language is settled and the consultation is starting.
+    context_scope: shared
+    then: end
+    steps:
+      - get_consent
+      - interpret
+      - capture_prescription
+      - confirm_prescription # ← the gate; nothing past here without a human tap
+      - read_back
+      - teach_back
+      - take_home

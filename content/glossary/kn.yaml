@@ -1,0 +1,347 @@
+# content/glossary/kn.yaml — Kannada lay-term glossary for a Bengaluru OPD
+#
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  DRAFTED, NOT VERIFIED. Every entry carries review: NEEDS-NATIVE-REVIEW ║
+# ║  A native Kannada speaker clears it per entry by setting review: ok     ║
+# ║  (after correcting the string if needed).                               ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+#
+# Used two ways — see the header of content/glossary/ta.yaml for the full
+# rules. The short version: `likely_means` is a HYPOTHESIS shown to the doctor
+# in quotes, never a diagnosis, and never spoken to the patient.
+#
+# Kannada is the local language, so this glossary carries the heaviest load:
+# it is the one language where the patient may be a long-term Bengaluru
+# resident AND where the doctor is most likely to half-understand, which is its
+# own risk — a doctor who thinks they followed it may not ask again.
+
+schema_version: 1
+language: kn
+language_name_en: Kannada
+
+review:
+  status: pending
+  reviewer: ""
+  reviewed_at: ""
+  how_to_review: >
+    Ask per entry: would a patient in a Bengaluru government OPD actually say
+    this, and is likely_means the most common meaning rather than merely a
+    possible one? Delete what you have not heard; add what you have.
+
+entries:
+  # --- conditions in lay terms ---------------------------------------------
+  - said: "ಸಕ್ಕರೆ ಕಾಯಿಲೆ"
+    roman: "sakkare kaayile"
+    likely_means: "diabetes (literally 'sugar disease')"
+    doctor_display: "\"sugar disease\" (diabetes)"
+    category: condition
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಶುಗರ್ ಇದೆ"
+    roman: "sugar ide"
+    likely_means: "I have diabetes"
+    doctor_display: "\"sugar\" (diabetes)"
+    category: code_mix
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಬಿಪಿ ಇದೆ"
+    roman: "BP ide"
+    likely_means: "I have blood pressure trouble — usually hypertension"
+    doctor_display: "\"BP\" (blood pressure)"
+    category: code_mix
+    note: "Ambiguous high vs low. The doctor must ask; do not resolve it."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಗ್ಯಾಸ್ಟ್ರಿಕ್"
+    roman: "gastric"
+    likely_means: "acidity, bloating, indigestion — sometimes how chest pain is described"
+    doctor_display: "\"gastric\" (acidity/bloating)"
+    category: code_mix
+    note: "SAFETY: 'gastric' in the chest can be an MI. Pairs with the chest-pain red flag."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಮೈ ಬಿಸಿ"
+    roman: "mai bisi"
+    likely_means: "body heat — a folk category, not a measured fever"
+    doctor_display: "\"body heat\" (folk term — ask what exactly)"
+    category: folk_concept
+    note: "Translating this as 'fever' would be an invention."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಸುಸ್ತು"
+    roman: "sustu"
+    likely_means: "weakness, tiredness"
+    doctor_display: "\"weakness/tiredness\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಭೇದಿ"
+    roman: "bhedi"
+    likely_means: "loose motion, diarrhoea"
+    doctor_display: "\"loose motion\" (diarrhoea)"
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ತಲೆ ಸುತ್ತು"
+    roman: "tale suttu"
+    likely_means: "giddiness, dizziness"
+    doctor_display: "\"giddiness\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಪ್ರಜ್ಞೆ ತಪ್ಪಿತು"
+    roman: "pragne tappitu"
+    likely_means: "lost consciousness, fainted"
+    doctor_display: "\"fainted\""
+    category: symptom
+    note: "SAFETY: urgent red flag."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ವಾಂತಿ"
+    roman: "vaanti"
+    likely_means: "vomiting"
+    doctor_display: "\"vomiting\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ವಾಕರಿಕೆ"
+    roman: "vaakarike"
+    likely_means: "nausea"
+    doctor_display: "\"nausea\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಎದೆ ಉರಿ"
+    roman: "ede uri"
+    likely_means: "burning in the chest, heartburn"
+    doctor_display: "\"burning in the chest\" (heartburn)"
+    category: symptom
+    note: "SAFETY: overlaps with cardiac chest pain. Watch-level flag."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಉಸಿರಾಟ ಕಷ್ಟ"
+    roman: "usiraata kashta"
+    likely_means: "difficulty breathing"
+    doctor_display: "\"difficulty breathing\""
+    category: symptom
+    note: "SAFETY: urgent red flag."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ನೆಗಡಿ"
+    roman: "negadi"
+    likely_means: "cold, runny nose"
+    doctor_display: "\"cold\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಕೆಮ್ಮು"
+    roman: "kemmu"
+    likely_means: "cough"
+    doctor_display: "\"cough\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಜ್ವರ"
+    roman: "jwara"
+    likely_means: "fever"
+    doctor_display: "\"fever\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಚಳಿ ಜ್ವರ"
+    roman: "chali jwara"
+    likely_means: "fever with shivering/rigors — often what people call malaria-type fever"
+    doctor_display: "\"fever with shivering\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಉರಿ ಮೂತ್ರ"
+    roman: "uri mootra"
+    likely_means: "burning when passing urine"
+    doctor_display: "\"burning urination\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಮೈ ಕೈ ನೋವು"
+    roman: "mai kai novu"
+    likely_means: "body ache, aching all over"
+    doctor_display: "\"body ache\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಹೊಟ್ಟೆ ಉಬ್ಬರ"
+    roman: "hotte ubbara"
+    likely_means: "bloating, distended stomach"
+    doctor_display: "\"bloating\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಮಲಬದ್ಧತೆ"
+    roman: "malabaddhate"
+    likely_means: "constipation"
+    doctor_display: "\"constipation\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ತುರಿಕೆ"
+    roman: "turike"
+    likely_means: "itching"
+    doctor_display: "\"itching\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಊತ"
+    roman: "oota"
+    likely_means: "swelling"
+    doctor_display: "\"swelling\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಮೈ ಹುಷಾರಿಲ್ಲ"
+    roman: "mai hushaarilla"
+    likely_means: "not feeling well — the universal opening line, no specific symptom"
+    doctor_display: "\"not feeling well\" (no symptom stated)"
+    category: general
+    note: "Must NOT be expanded into symptoms the patient did not state."
+    review: NEEDS-NATIVE-REVIEW
+
+  # --- body parts -----------------------------------------------------------
+  - said: "ಹೊಟ್ಟೆ"
+    roman: "hotte"
+    likely_means: "stomach/abdomen — the whole belly"
+    doctor_display: "\"stomach\" (whole abdomen)"
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಎದೆ"
+    roman: "ede"
+    likely_means: "chest"
+    doctor_display: "\"chest\""
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಬೆನ್ನು"
+    roman: "bennu"
+    likely_means: "back"
+    doctor_display: "\"back\""
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಸೊಂಟ"
+    roman: "sonta"
+    likely_means: "waist / lower back / hip — one word for a region English splits in three"
+    doctor_display: "\"sonta\" (lower back/waist/hip — ask where exactly)"
+    category: body_part
+    note: "Common mistranslation: rendered as 'hip' when the patient means lower back."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಕೈ"
+    roman: "kai"
+    likely_means: "hand OR whole arm"
+    doctor_display: "\"kai\" (hand or arm)"
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಕಾಲು"
+    roman: "kaalu"
+    likely_means: "foot OR whole leg"
+    doctor_display: "\"kaalu\" (foot or leg)"
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ತಲೆ"
+    roman: "tale"
+    likely_means: "head"
+    doctor_display: "\"head\""
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಕುತ್ತಿಗೆ"
+    roman: "kuttige"
+    likely_means: "neck"
+    doctor_display: "\"neck\""
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಕೀಲು"
+    roman: "keelu"
+    likely_means: "joint"
+    doctor_display: "\"joint\""
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+
+  # --- time expressions -----------------------------------------------------
+  - said: "ಎರಡು ದಿನದಿಂದ"
+    roman: "eradu dinadinda"
+    likely_means: "since two days / for the last two days"
+    doctor_display: "\"since two days\" (duration = 2 days)"
+    category: time
+    note: "Keep the DURATION, not the Indian-English idiom."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ನಿನ್ನೆ ರಾತ್ರಿಯಿಂದ"
+    roman: "ninne raatriyinda"
+    likely_means: "since last night"
+    doctor_display: "\"since last night\""
+    category: time
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ವಾರದಿಂದ"
+    roman: "vaaradinda"
+    likely_means: "for about a week"
+    doctor_display: "\"about a week\""
+    category: time
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಆಗಾಗ"
+    roman: "aagaaga"
+    likely_means: "on and off, now and then — NOT constant"
+    doctor_display: "\"on and off\" (intermittent)"
+    category: time
+    note: "Dropping 'on and off' changes the clinical picture."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ತುಂಬಾ ದಿನದಿಂದ"
+    roman: "tumba dinadinda"
+    likely_means: "for a long time — vague, weeks to years"
+    doctor_display: "\"a long time\" (vague)"
+    category: time
+    note: "Must NOT be converted into a number of days."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಊಟ ಆದ ಮೇಲೆ"
+    roman: "oota aada mele"
+    likely_means: "after food"
+    doctor_display: "\"after food\""
+    category: time
+    review: NEEDS-NATIVE-REVIEW
+
+  # --- Kanglish: English words inside a Kannada sentence --------------------
+  - said: "ಡಾಕ್ಟರ್, ಫೀವರ್ ಮೂರು ದಿನದಿಂದ ಇದೆ"
+    roman: "doctor, fever mooru dinadinda ide"
+    likely_means: "Doctor, I have had fever for three days"
+    doctor_display: "\"fever for three days\""
+    category: code_mix
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಟ್ಯಾಬ್ಲೆಟ್ ಮುಗಿದಿದೆ"
+    roman: "tablet mugidide"
+    likely_means: "The tablets are finished"
+    doctor_display: "\"tablets finished\""
+    category: code_mix
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಸ್ಕ್ಯಾನ್ ಮಾಡಿಸಬೇಕಾ"
+    roman: "scan maadisabeka"
+    likely_means: "Do I need to get a scan?"
+    doctor_display: "\"do I need a scan?\""
+    category: code_mix
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಚೆಕಪ್ ಮಾಡಿಸಕ್ಕೆ ಬಂದಿದೀನಿ"
+    roman: "checkup maadisakke bandideeni"
+    likely_means: "I have come for a checkup"
+    doctor_display: "\"here for a checkup\""
+    category: code_mix
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಬ್ಲಡ್ ಟೆಸ್ಟ್ ಮಾಡಿಸಿದೆ"
+    roman: "blood test maadiside"
+    likely_means: "I got a blood test done"
+    doctor_display: "\"got a blood test\""
+    category: code_mix
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಒಂದು ಸೊನ್ನೆ ಒಂದು"
+    roman: "ondu sonne ondu"
+    likely_means: "1-0-1: one morning, none at noon, one at night"
+    doctor_display: "1-0-1 (morning/night)"
+    category: dosing_shorthand
+    note: "Dosing shorthand goes to the SCHEDULE fields, never to free text."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಅರ್ಧ ಮಾತ್ರೆ"
+    roman: "ardha maatre"
+    likely_means: "half a tablet"
+    doctor_display: "half tablet"
+    category: dosing_shorthand
+    note: "Goes to the SCHEDULE as 0.5 since the docs/04 §2 change of 2026-10-17 — not to notes. The read-back says it aloud as ಅರ್ಧ."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಒಂದು ಚಮಚ"
+    roman: "ondu chamacha"
+    likely_means: "one spoon (of syrup) — count=1 with form=syrup"
+    doctor_display: "1 spoon (syrup)"
+    category: dosing_shorthand
+    review: NEEDS-NATIVE-REVIEW
+
+  # --- non-clinical phrases that must not be expanded ----------------------
+  - said: "ದೇವರ ದಯೆಯಿಂದ"
+    roman: "devara dayeyinda"
+    likely_means: "by God's grace — a filler with no clinical content"
+    doctor_display: "(figure of speech)"
+    category: filler
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ಊರಿಂದ ಬಂದಿದೀನಿ"
+    roman: "oorinda bandideeni"
+    likely_means: "I came from my home town/village — travel history, not a symptom"
+    doctor_display: "\"came from my home town\" (travel history)"
+    category: general
+    review: NEEDS-NATIVE-REVIEW

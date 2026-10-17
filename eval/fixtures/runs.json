@@ -1,0 +1,132 @@
+{
+  "_comment": [
+    "SYNTHESIZED alongside eval/fixtures/dev.log by eval/make_dev_log_fixture.py.",
+    "Not a record of real runs. The real one is written by whoever drives the 10",
+    "prescription runs, and is keyed by the dev server's call_id — the dev.log has",
+    "no session_id field at all (see docs/03 §14 and eval/devlog.py)."
+  ],
+  "source": "eval/fixtures/dev.log",
+  "key": "call_id",
+  "sessions": {
+    "call_rx01_ta": {
+      "prescription_id": "rx-01",
+      "language": "ta"
+    },
+    "call_rx01_kn": {
+      "prescription_id": "rx-01",
+      "language": "kn"
+    },
+    "call_rx01_hi": {
+      "prescription_id": "rx-01",
+      "language": "hi"
+    },
+    "call_rx02_ta": {
+      "prescription_id": "rx-02",
+      "language": "ta"
+    },
+    "call_rx02_kn": {
+      "prescription_id": "rx-02",
+      "language": "kn"
+    },
+    "call_rx02_hi": {
+      "prescription_id": "rx-02",
+      "language": "hi"
+    },
+    "call_rx03_ta": {
+      "prescription_id": "rx-03",
+      "language": "ta"
+    },
+    "call_rx03_kn": {
+      "prescription_id": "rx-03",
+      "language": "kn"
+    },
+    "call_rx03_hi": {
+      "prescription_id": "rx-03",
+      "language": "hi"
+    },
+    "call_rx04_ta": {
+      "prescription_id": "rx-04",
+      "language": "ta"
+    },
+    "call_rx04_kn": {
+      "prescription_id": "rx-04",
+      "language": "kn"
+    },
+    "call_rx04_hi": {
+      "prescription_id": "rx-04",
+      "language": "hi"
+    },
+    "call_rx05_ta": {
+      "prescription_id": "rx-05",
+      "language": "ta"
+    },
+    "call_rx05_kn": {
+      "prescription_id": "rx-05",
+      "language": "kn"
+    },
+    "call_rx05_hi": {
+      "prescription_id": "rx-05",
+      "language": "hi"
+    },
+    "call_rx06_ta": {
+      "prescription_id": "rx-06",
+      "language": "ta"
+    },
+    "call_rx06_kn": {
+      "prescription_id": "rx-06",
+      "language": "kn"
+    },
+    "call_rx06_hi": {
+      "prescription_id": "rx-06",
+      "language": "hi"
+    },
+    "call_rx07_ta": {
+      "prescription_id": "rx-07",
+      "language": "ta"
+    },
+    "call_rx07_kn": {
+      "prescription_id": "rx-07",
+      "language": "kn"
+    },
+    "call_rx07_hi": {
+      "prescription_id": "rx-07",
+      "language": "hi"
+    },
+    "call_rx08_ta": {
+      "prescription_id": "rx-08",
+      "language": "ta"
+    },
+    "call_rx08_kn": {
+      "prescription_id": "rx-08",
+      "language": "kn"
+    },
+    "call_rx08_hi": {
+      "prescription_id": "rx-08",
+      "language": "hi"
+    },
+    "call_rx09_ta": {
+      "prescription_id": "rx-09",
+      "language": "ta"
+    },
+    "call_rx09_kn": {
+      "prescription_id": "rx-09",
+      "language": "kn"
+    },
+    "call_rx09_hi": {
+      "prescription_id": "rx-09",
+      "language": "hi"
+    },
+    "call_rx10_ta": {
+      "prescription_id": "rx-10",
+      "language": "ta"
+    },
+    "call_rx10_kn": {
+      "prescription_id": "rx-10",
+      "language": "kn"
+    },
+    "call_rx10_hi": {
+      "prescription_id": "rx-10",
+      "language": "hi"
+    }
+  }
+}

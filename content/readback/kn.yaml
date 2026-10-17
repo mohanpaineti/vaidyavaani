@@ -1,0 +1,186 @@
+# content/readback/kn.yaml — Kannada read-back slot templates
+#
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  EVERY Kannada string in this file is DRAFTED, NOT VERIFIED.            ║
+# ║  Each carries a trailing  # NEEDS-NATIVE-REVIEW  marker.                ║
+# ║  A native Kannada speaker reads the RENDERED sentence aloud, fixes it,  ║
+# ║  then DELETES that marker from the line.                                ║
+# ║  `python eval/score.py review-status` counts what is still unreviewed.  ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+#
+# Consumed by console/app/readback.py. Inputs are ONLY the integers and enums of
+# a confirmed RxLine (docs/04 §2). No model output reaches this render.
+# The render contract is IDENTICAL across ta/kn/hi — see content/readback/ta.yaml
+# for the full step-by-step. Only the strings and the language notes differ.
+
+schema_version: 1
+language: kn
+language_name_en: Kannada
+
+review:
+  status: pending
+  reviewer: ""
+  reviewed_at: ""
+  how_to_review: >
+    Render every kn row of eval/fixtures/readback_cases.json, READ IT ALOUD, and
+    ask whether a patient who left school before Class 10 follows it first time.
+    Bengaluru clinic Kannada, not newsreader Kannada.
+
+# ---------------------------------------------------------------------------
+# WORD ORDER — where Kannada refuses to follow the English template
+# ---------------------------------------------------------------------------
+# * SOV, like Tamil: ONE verb (ತೆಗೆದುಕೊಳ್ಳಿ) at the very end of the whole
+#   sentence, after the duration — not one verb per clause.
+# * Clause order is TIME → FOOD → COUNT → NOUN; English is the reverse.
+# * Kannada numerals do NOT change form before a noun the way Tamil's ஒரு does,
+#   so count_words is a straight lookup — but it is still a lookup, never
+#   str(n), because Bulbul must receive the WORD for the patient to hear it as
+#   speech rather than as a read-out digit.
+# * Pluralisation: ಮಾತ್ರೆಗಳು is the written plural. After a numeral, spoken
+#   Kannada keeps the singular ಮಾತ್ರೆ ("ಎರಡು ಮಾತ್ರೆ"). Drafted spoken.
+#   Reviewer: confirm this register call.
+# * ದಿನ vs ದಿನಗಳ ಕಾಲ: "ಐದು ದಿನ" is how a person says it; "ಐದು ದಿನಗಳ ಕಾಲ" is
+#   how a form says it. Drafted spoken.
+# * ಊಟ means a full meal. Patients who only had tea/tiffin may not count it as
+#   ಊಟ. Reviewer: decide whether ಊಟ or the broader ತಿಂಡಿ/ಊಟ phrasing is safer
+#   for "after food" — this is a comprehension risk, not a translation one.
+
+# STRENGTH IS NEVER SPOKEN (ruled 2026-10-17, docs/04 §2 rulings table): there
+# is no slot for strength_value / strength_unit here and none may be added. The
+# full reasoning is in content/readback/ta.yaml.
+
+templates:
+  dose_clause_first: "{time_of_day} {food_relation} {count} {form}"   # NEEDS-NATIVE-REVIEW
+  dose_clause_next: "{time_of_day} {count}"                           # NEEDS-NATIVE-REVIEW
+  dose_clause_first_no_food: "{time_of_day} {count} {form}"           # NEEDS-NATIVE-REVIEW
+
+joiners:
+  clause: ", "
+  before_verb: " "
+
+punctuation:
+  end: "."
+
+time_of_day:
+  morning: "ಬೆಳಿಗ್ಗೆ"       # NEEDS-NATIVE-REVIEW
+  afternoon: "ಮಧ್ಯಾಹ್ನ"     # NEEDS-NATIVE-REVIEW
+  night: "ರಾತ್ರಿ"           # NEEDS-NATIVE-REVIEW
+
+food_relation:
+  before_food: "ಊಟಕ್ಕೆ ಮೊದಲು"   # NEEDS-NATIVE-REVIEW
+  after_food: "ಊಟ ಆದ ಮೇಲೆ"      # NEEDS-NATIVE-REVIEW
+  with_food: "ಊಟದ ಜೊತೆಗೆ"       # NEEDS-NATIVE-REVIEW
+
+# schedule values are multiples of 0.5 from 0 to 4 (docs/04 §2, changed
+# 2026-10-17 from int). 0 skips the clause; every other legal value needs a word.
+count_words:
+  0.5: "ಅರ್ಧ"      # NEEDS-NATIVE-REVIEW
+  1: "ಒಂದು"       # NEEDS-NATIVE-REVIEW
+  1.5: "ಒಂದೂವರೆ"   # NEEDS-NATIVE-REVIEW
+  2: "ಎರಡು"       # NEEDS-NATIVE-REVIEW
+  2.5: "ಎರಡೂವರೆ"   # NEEDS-NATIVE-REVIEW
+  3: "ಮೂರು"       # NEEDS-NATIVE-REVIEW
+  3.5: "ಮೂರೂವರೆ"   # NEEDS-NATIVE-REVIEW
+  4: "ನಾಲ್ಕು"      # NEEDS-NATIVE-REVIEW
+  # Like Tamil, Kannada fuses the half into one word (ಒಂದು + ಅರ್ಧ -> ಒಂದೂವರೆ).
+  # "ಒಂದು ಅರ್ಧ ಮಾತ್ರೆ" is not Kannada. ಅರ್ಧ alone precedes the noun directly.
+
+form_nouns:
+  tablet: "ಮಾತ್ರೆ"        # NEEDS-NATIVE-REVIEW
+  capsule: "ಕ್ಯಾಪ್ಸೂಲ್"    # NEEDS-NATIVE-REVIEW
+  syrup: "ಚಮಚ ಔಷಧಿ"      # NEEDS-NATIVE-REVIEW  (a syrup count is SPOONS)
+  drops: "ಹನಿ"            # NEEDS-NATIVE-REVIEW
+  injection: "ಇಂಜೆಕ್ಷನ್"   # NEEDS-NATIVE-REVIEW
+  ointment: "ಸಾರಿ"        # NEEDS-NATIVE-REVIEW  (ointment counts are TIMES applied)
+  null_form: "ಔಷಧಿ"       # NEEDS-NATIVE-REVIEW  ("medicine")
+
+verb_phrase:
+  tablet: "ತೆಗೆದುಕೊಳ್ಳಿ"              # NEEDS-NATIVE-REVIEW
+  capsule: "ತೆಗೆದುಕೊಳ್ಳಿ"             # NEEDS-NATIVE-REVIEW
+  syrup: "ಕುಡಿಯಿರಿ"                   # NEEDS-NATIVE-REVIEW
+  drops: "ಹಾಕಿಕೊಳ್ಳಿ"                 # NEEDS-NATIVE-REVIEW
+  injection: "ಹಾಕಿಸಿಕೊಳ್ಳಬೇಕು"        # NEEDS-NATIVE-REVIEW
+  ointment: "ಹಚ್ಚಿಕೊಳ್ಳಿ"              # NEEDS-NATIVE-REVIEW
+  null_form: "ತೆಗೆದುಕೊಳ್ಳಿ"            # NEEDS-NATIVE-REVIEW
+
+duration:
+  template: "{days} ದಿನ"                # NEEDS-NATIVE-REVIEW
+  one_day: "ಇವತ್ತು ಒಂದು ದಿನ ಮಾತ್ರ"      # NEEDS-NATIVE-REVIEW
+  day_words:
+    1: "ಒಂದು"       # NEEDS-NATIVE-REVIEW
+    2: "ಎರಡು"       # NEEDS-NATIVE-REVIEW
+    3: "ಮೂರು"       # NEEDS-NATIVE-REVIEW
+    4: "ನಾಲ್ಕು"      # NEEDS-NATIVE-REVIEW
+    5: "ಐದು"        # NEEDS-NATIVE-REVIEW
+    6: "ಆರು"        # NEEDS-NATIVE-REVIEW
+    7: "ಏಳು"        # NEEDS-NATIVE-REVIEW
+    8: "ಎಂಟು"       # NEEDS-NATIVE-REVIEW
+    9: "ಒಂಬತ್ತು"     # NEEDS-NATIVE-REVIEW
+    10: "ಹತ್ತು"      # NEEDS-NATIVE-REVIEW
+    14: "ಹದಿನಾಲ್ಕು"  # NEEDS-NATIVE-REVIEW
+    15: "ಹದಿನೈದು"   # NEEDS-NATIVE-REVIEW
+    21: "ಇಪ್ಪತ್ತೊಂದು" # NEEDS-NATIVE-REVIEW
+    30: "ಮೂವತ್ತು"    # NEEDS-NATIVE-REVIEW
+  digit_fallback: true
+
+# Prefixed to each sentence ONLY when the prescription has more than one line
+# (docs/04 §2 ruling, 2026-10-17). drug_text is inserted exactly as confirmed —
+# never translated or transliterated.
+multi_line_prefix: "{drug_text} — "   # NEEDS-NATIVE-REVIEW
+
+notes_prefix: "ಡಾಕ್ಟರ್ ಹೇಳಿದ ಇನ್ನೊಂದು ವಿಷಯ: "   # NEEDS-NATIVE-REVIEW
+
+errors:
+  all_zero_schedule: "Read-back blocked: this line has 0 in every slot (morning, afternoon and night). The patient would hear no dose at all. Edit the line or remove it."
+  unknown_form: "Read-back blocked: form is not one of tablet|capsule|syrup|injection|drops|ointment|null."
+  duration_out_of_range: "Read-back blocked: duration_days must be 1-180 or null."
+
+examples:
+  - name: brief_model_sentence
+    rx: { schedule: { morning: 1, afternoon: 0, night: 1 }, food_relation: after_food, form: tablet, duration_days: 5 }
+    expect_en: "one tablet in the morning after food, one at night, for 5 days"
+    expect: "ಬೆಳಿಗ್ಗೆ ಊಟ ಆದ ಮೇಲೆ ಒಂದು ಮಾತ್ರೆ, ರಾತ್ರಿ ಒಂದು, ಐದು ದಿನ ತೆಗೆದುಕೊಳ್ಳಿ."   # NEEDS-NATIVE-REVIEW
+  - name: three_times_daily
+    rx: { schedule: { morning: 1, afternoon: 1, night: 1 }, food_relation: after_food, form: tablet, duration_days: 3 }
+    expect: "ಬೆಳಿಗ್ಗೆ ಊಟ ಆದ ಮೇಲೆ ಒಂದು ಮಾತ್ರೆ, ಮಧ್ಯಾಹ್ನ ಒಂದು, ರಾತ್ರಿ ಒಂದು, ಮೂರು ದಿನ ತೆಗೆದುಕೊಳ್ಳಿ."   # NEEDS-NATIVE-REVIEW
+  - name: night_only_one_day
+    rx: { schedule: { morning: 0, afternoon: 0, night: 1 }, food_relation: before_food, form: tablet, duration_days: 1 }
+    expect: "ರಾತ್ರಿ ಊಟಕ್ಕೆ ಮೊದಲು ಒಂದು ಮಾತ್ರೆ, ಇವತ್ತು ಒಂದು ದಿನ ಮಾತ್ರ ತೆಗೆದುಕೊಳ್ಳಿ."   # NEEDS-NATIVE-REVIEW
+  - name: syrup_two_spoons_no_duration
+    rx: { schedule: { morning: 2, afternoon: 0, night: 2 }, food_relation: after_food, form: syrup, duration_days: null }
+    expect: "ಬೆಳಿಗ್ಗೆ ಊಟ ಆದ ಮೇಲೆ ಎರಡು ಚಮಚ ಔಷಧಿ, ರಾತ್ರಿ ಎರಡು ಕುಡಿಯಿರಿ."   # NEEDS-NATIVE-REVIEW
+  - name: no_food_relation_stated
+    rx: { schedule: { morning: 1, afternoon: 0, night: 0 }, food_relation: null, form: capsule, duration_days: 7 }
+    expect: "ಬೆಳಿಗ್ಗೆ ಒಂದು ಕ್ಯಾಪ್ಸೂಲ್, ಏಳು ದಿನ ತೆಗೆದುಕೊಳ್ಳಿ."   # NEEDS-NATIVE-REVIEW
+  - name: all_zero_must_raise
+    rx: { schedule: { morning: 0, afternoon: 0, night: 0 }, food_relation: after_food, form: tablet, duration_days: 5 }
+    expect: RAISE_all_zero_schedule
+  - name: half_morning_whole_night
+    rx: { schedule: { morning: 0.5, afternoon: 0, night: 1 }, food_relation: after_food, form: tablet, duration_days: 5 }
+    expect_en: "half a tablet in the morning after food, one at night, for 5 days"
+    # note: The realistic half-dose shape (BP and thyroid dosing). Added when docs/04 §2
+    #        changed schedule from int to multiples of 0.5 on 2026-10-17.
+    expect: "ಬೆಳಿಗ್ಗೆ ಊಟ ಆದ ಮೇಲೆ ಅರ್ಧ ಮಾತ್ರೆ, ರಾತ್ರಿ ಒಂದು, ಐದು ದಿನ ತೆಗೆದುಕೊಳ್ಳಿ."   # NEEDS-NATIVE-REVIEW
+  - name: half_only_once_a_day
+    rx: { schedule: { morning: 0, afternoon: 0, night: 0.5 }, food_relation: before_food, form: tablet, duration_days: 14 }
+    expect_en: "half a tablet at night before food, for 14 days"
+    # note: A lone half dose, so the half word has to stand without a whole one beside it.
+    expect: "ರಾತ್ರಿ ಊಟಕ್ಕೆ ಮೊದಲು ಅರ್ಧ ಮಾತ್ರೆ, ಹದಿನಾಲ್ಕು ದಿನ ತೆಗೆದುಕೊಳ್ಳಿ."   # NEEDS-NATIVE-REVIEW
+  - name: one_and_a_half
+    rx: { schedule: { morning: 1.5, afternoon: 0, night: 0 }, food_relation: after_food, form: tablet, duration_days: 7 }
+    expect_en: "one and a half tablets in the morning after food, for 7 days"
+    # note: Locks the suppletive form: Hindi डेढ़, Tamil ஒன்றரை, Kannada ಒಂದೂವರೆ — never
+    #        built by concatenating the words for 'one' and 'half'.
+    expect: "ಬೆಳಿಗ್ಗೆ ಊಟ ಆದ ಮೇಲೆ ಒಂದೂವರೆ ಮಾತ್ರೆ, ಏಳು ದಿನ ತೆಗೆದುಕೊಳ್ಳಿ."   # NEEDS-NATIVE-REVIEW
+  - name: two_and_a_half_spoons
+    rx: { schedule: { morning: 2.5, afternoon: 0, night: 2.5 }, food_relation: after_food, form: syrup, duration_days: 3 }
+    expect_en: "two and a half spoons morning and night after food, for 3 days"
+    # note: Hindi ढाई, and a half count on a syrup rather than a tablet.
+    expect: "ಬೆಳಿಗ್ಗೆ ಊಟ ಆದ ಮೇಲೆ ಎರಡೂವರೆ ಚಮಚ ಔಷಧಿ, ರಾತ್ರಿ ಎರಡೂವರೆ, ಮೂರು ದಿನ ಕುಡಿಯಿರಿ."   # NEEDS-NATIVE-REVIEW
+  - name: three_and_a_half_regular_form
+    rx: { schedule: { morning: 3.5, afternoon: 0, night: 0 }, food_relation: after_food, form: tablet, duration_days: 3 }
+    expect_en: "three and a half tablets in the morning after food, for 3 days"
+    # note: 3.5 is where Hindi stops being suppletive and becomes regular (साढ़े + the
+    #        whole number). Locking it here so nobody "simplifies" डेढ़ and ढाई into
+    #        the same pattern.
+    expect: "ಬೆಳಿಗ್ಗೆ ಊಟ ಆದ ಮೇಲೆ ಮೂರೂವರೆ ಮಾತ್ರೆ, ಮೂರು ದಿನ ತೆಗೆದುಕೊಳ್ಳಿ."   # NEEDS-NATIVE-REVIEW

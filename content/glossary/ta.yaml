@@ -1,0 +1,361 @@
+# content/glossary/ta.yaml — Tamil lay-term glossary for a Bengaluru OPD
+#
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  DRAFTED, NOT VERIFIED. Every `said` string carries NEEDS-NATIVE-REVIEW ║
+# ║  in its `review` field. A native Tamil speaker clears it per entry by   ║
+# ║  setting review: ok (or correcting the string first).                   ║
+# ║  `python eval/score.py review-status` counts what is still unreviewed.  ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+#
+# Used TWO ways (docs/01 §6, docs/04 §2 Turn.lay_terms):
+#  1. Injected into the interpreter prompt as few-shot pairs, so the model
+#     renders "சர்க்கரை" as "sugar (diabetes)" instead of the literal sweetener.
+#  2. Surfaced to the doctor as `lay_terms: [{said, likely_means}]` and shown
+#     IN QUOTES on the doctor's half, so the doctor can ask a follow-up.
+#
+# RULES THAT MAKE THIS SAFE:
+#  * `likely_means` is a HYPOTHESIS, never a diagnosis. The doctor's screen
+#    renders it as: patient said "சர்க்கரை" — may mean: diabetes. It must never
+#    be rendered as a finding, and it must never be spoken to the patient.
+#  * The ENGLISH translation shown to the doctor keeps the patient's own word
+#    plus the gloss ("sugar (diabetes?)"), never the clinical term alone.
+#    Replacing the patient's word loses the doctor's ability to spot a bad
+#    guess — the whole reason docs/01 shows both transcripts.
+#  * Code-mixed entries (Tanglish) exist because Saaras v3 code-mix mode keeps
+#    English medical words as spoken (docs/01 §6). Do not "fix" them.
+
+schema_version: 1
+language: ta
+language_name_en: Tamil
+
+review:
+  status: pending
+  reviewer: ""
+  reviewed_at: ""
+  how_to_review: >
+    For each entry ask two things: (a) would a patient in a Bengaluru OPD
+    actually say this, and (b) is likely_means the most common meaning, not
+    just a possible one? Delete entries you have never heard; add the ones you
+    have. Then set this entry's `review:` to ok.
+
+entries:
+  # --- conditions patients name in lay terms -------------------------------
+  - said: "சுகர்"
+    roman: "sugar"
+    likely_means: "diabetes"
+    doctor_display: "\"sugar\" (diabetes)"
+    category: condition
+    review: NEEDS-NATIVE-REVIEW
+  - said: "பிபி"
+    roman: "BP"
+    likely_means: "blood pressure, usually hypertension"
+    doctor_display: "\"BP\" (blood pressure)"
+    category: condition
+    note: "Ambiguous: can mean high OR low BP. The doctor must ask; do not resolve it."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "கேஸ் டிரபிள்"
+    roman: "gas trouble"
+    likely_means: "bloating, acidity, indigestion — occasionally how cardiac chest pain is described"
+    doctor_display: "\"gas trouble\" (bloating/acidity)"
+    category: symptom
+    note: "SAFETY: 'gas' in the chest can be an MI. Pairs with the chest-pain red flag — see content/redflags/ta.yaml."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "உடல் சூடு"
+    roman: "udal soodu"
+    likely_means: "body heat — a folk category; may mean burning urination, mouth ulcers, constipation or rash"
+    doctor_display: "\"body heat\" (folk term — ask what exactly)"
+    category: folk_concept
+    note: "Not a symptom. Translating it as 'fever' would be an invention."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "பலவீனம்"
+    roman: "palaveenam"
+    likely_means: "weakness, tiredness, low energy"
+    doctor_display: "\"weakness\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "பேதி"
+    roman: "bedhi"
+    likely_means: "loose motion, diarrhoea"
+    doctor_display: "\"loose motion\" (diarrhoea)"
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "தலைசுற்றல்"
+    roman: "thalai sutral"
+    likely_means: "giddiness, dizziness"
+    doctor_display: "\"giddiness\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "மயக்கம்"
+    roman: "mayakkam"
+    likely_means: "faintness, or an actual faint — the same word covers both"
+    doctor_display: "\"mayakkam\" (giddy or fainted — ask which)"
+    category: symptom
+    note: "SAFETY: if it means an actual faint this is a red flag. Ambiguity is real; do not resolve it silently."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "வாந்தி"
+    roman: "vaanthi"
+    likely_means: "vomiting"
+    doctor_display: "\"vomiting\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "குமட்டல்"
+    roman: "kumattal"
+    likely_means: "nausea"
+    doctor_display: "\"nausea\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "நெஞ்செரிச்சல்"
+    roman: "nenjerichal"
+    likely_means: "heartburn, burning in the chest"
+    doctor_display: "\"burning in the chest\" (heartburn)"
+    category: symptom
+    note: "SAFETY: overlaps with cardiac chest pain. Watch-level red flag."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "மூச்சு வாங்குது"
+    roman: "moochu vaanguthu"
+    likely_means: "breathlessness, getting winded"
+    doctor_display: "\"breathless\""
+    category: symptom
+    note: "SAFETY: urgent red flag phrase."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "சளி"
+    roman: "sali"
+    likely_means: "cold, catarrh, phlegm — covers runny nose AND sputum"
+    doctor_display: "\"sali\" (cold/phlegm)"
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "இருமல்"
+    roman: "irumal"
+    likely_means: "cough"
+    doctor_display: "\"cough\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "காய்ச்சல்"
+    roman: "kaaichal"
+    likely_means: "fever"
+    doctor_display: "\"fever\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "நடுக்கம்"
+    roman: "nadukkam"
+    likely_means: "shivering, rigors"
+    doctor_display: "\"shivering\""
+    category: symptom
+    note: "With fever, suggests rigors. Appears in the demo script (docs/01 §8)."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "சிறுநீர் கழிக்கும்போது எரிச்சல்"
+    roman: "siruneer kazhikkumpothu erichal"
+    likely_means: "burning when passing urine"
+    doctor_display: "\"burning when passing urine\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ஒடம்பு சரியில்ல"
+    roman: "odambu sariyilla"
+    likely_means: "feeling unwell generally — the universal opening line, not a symptom"
+    doctor_display: "\"not feeling well\" (no specific symptom stated)"
+    category: general
+    note: "Do NOT let the model expand this into symptoms the patient did not state."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "சோர்வு"
+    roman: "sorvu"
+    likely_means: "fatigue, exhaustion"
+    doctor_display: "\"fatigue\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ஜுரம்"
+    roman: "juram"
+    likely_means: "fever — older/rural word, same as காய்ச்சல்"
+    doctor_display: "\"fever\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "மலச்சிக்கல்"
+    roman: "malachikkal"
+    likely_means: "constipation"
+    doctor_display: "\"constipation\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "அரிப்பு"
+    roman: "arippu"
+    likely_means: "itching"
+    doctor_display: "\"itching\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "வீக்கம்"
+    roman: "veekkam"
+    likely_means: "swelling"
+    doctor_display: "\"swelling\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+
+  # --- body parts, as patients point and name them -------------------------
+  - said: "வயிறு"
+    roman: "vayiru"
+    likely_means: "stomach/abdomen — covers the whole belly, not just the organ"
+    doctor_display: "\"stomach\" (whole abdomen)"
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "நெஞ்சு"
+    roman: "nenju"
+    likely_means: "chest"
+    doctor_display: "\"chest\""
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "முதுகு"
+    roman: "mudhugu"
+    likely_means: "back"
+    doctor_display: "\"back\""
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "இடுப்பு"
+    roman: "iduppu"
+    likely_means: "lower back / waist / hip — one word for a region English splits in three"
+    doctor_display: "\"iduppu\" (lower back/waist/hip — ask where exactly)"
+    category: body_part
+    note: "A common mistranslation: rendering it as 'hip' when the patient means lower back."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "கை"
+    roman: "kai"
+    likely_means: "hand OR whole arm — Tamil does not split them"
+    doctor_display: "\"kai\" (hand or arm)"
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "கால்"
+    roman: "kaal"
+    likely_means: "foot OR whole leg — Tamil does not split them"
+    doctor_display: "\"kaal\" (foot or leg)"
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "தலை"
+    roman: "thalai"
+    likely_means: "head"
+    doctor_display: "\"head\""
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "மூட்டு"
+    roman: "moottu"
+    likely_means: "joint"
+    doctor_display: "\"joint\""
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "கழுத்து"
+    roman: "kazhuthu"
+    likely_means: "neck"
+    doctor_display: "\"neck\""
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+
+  # --- time expressions (the ones that break literal translation) ----------
+  - said: "ரெண்டு நாளா"
+    roman: "rendu naala"
+    likely_means: "since two days / for the last two days"
+    doctor_display: "\"since two days\" (duration = 2 days)"
+    category: time
+    note: "Indian-English 'since two days' means 'for two days'. Keep the DURATION, not the idiom."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "நேத்து ராத்திரி இருந்து"
+    roman: "nethu raathiri irundhu"
+    likely_means: "since last night"
+    doctor_display: "\"since last night\""
+    category: time
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ஒரு வாரமா"
+    roman: "oru vaarama"
+    likely_means: "for about a week"
+    doctor_display: "\"about a week\""
+    category: time
+    review: NEEDS-NATIVE-REVIEW
+  - said: "அவ்வப்போது"
+    roman: "avvappothu"
+    likely_means: "on and off, intermittently — NOT constant"
+    doctor_display: "\"on and off\" (intermittent)"
+    category: time
+    note: "Dropping 'on and off' changes the clinical picture. Must survive translation."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ரொம்ப நாளா"
+    roman: "romba naala"
+    likely_means: "for a long time — vague, weeks to years"
+    doctor_display: "\"a long time\" (vague — doctor should pin it down)"
+    category: time
+    note: "Do NOT let the model turn this into a number of days."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "சாப்பாட்டுக்கு அப்புறம்"
+    roman: "saapaattuku appuram"
+    likely_means: "after food"
+    doctor_display: "\"after food\""
+    category: time
+    review: NEEDS-NATIVE-REVIEW
+
+  # --- Tanglish: English medical words inside a Tamil sentence -------------
+  # Saaras v3 code-mix mode keeps these as spoken. The model must NOT
+  # "correct" them into Tamil, and must not drop them.
+  - said: "டாக்டர், ஃபீவர் மூணு நாளா இருக்கு"
+    roman: "doctor, fever moonu naala irukku"
+    likely_means: "Doctor, I've had fever for three days"
+    doctor_display: "\"fever for three days\""
+    category: code_mix
+    review: NEEDS-NATIVE-REVIEW
+  - said: "செக்கப் பண்ணனும்"
+    roman: "checkup pannanum"
+    likely_means: "I need to get a checkup"
+    doctor_display: "\"need a checkup\""
+    category: code_mix
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ஸ்கேன் எடுக்கணுமா"
+    roman: "scan edukkanuma"
+    likely_means: "Do I need to get a scan?"
+    doctor_display: "\"do I need a scan?\""
+    category: code_mix
+    review: NEEDS-NATIVE-REVIEW
+  - said: "டேப்லெட் முடிஞ்சுடுச்சு"
+    roman: "tablet mudinjuduchu"
+    likely_means: "The tablets are finished / I ran out"
+    doctor_display: "\"tablets finished\""
+    category: code_mix
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ஷுகர் டெஸ்ட் பண்ணிட்டேன்"
+    roman: "sugar test pannitten"
+    likely_means: "I got my blood sugar tested"
+    doctor_display: "\"got sugar tested\""
+    category: code_mix
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ஓன் ஓன் ஓன்"
+    roman: "one one one"
+    likely_means: "1-1-1 dosing shorthand: one morning, one afternoon, one night"
+    doctor_display: "1-1-1 (morning/afternoon/night)"
+    category: dosing_shorthand
+    note: "Dosing shorthand goes to the SCHEDULE fields, never to free text. See docs/01 §4."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ஒன்னு ஜீரோ ஒன்னு"
+    roman: "onnu zero onnu"
+    likely_means: "1-0-1: one morning, none at noon, one at night"
+    doctor_display: "1-0-1 (morning/night)"
+    category: dosing_shorthand
+    review: NEEDS-NATIVE-REVIEW
+  - said: "அரை மாத்திரை"
+    roman: "arai maathirai"
+    likely_means: "half a tablet"
+    doctor_display: "half tablet"
+    category: dosing_shorthand
+    note: "Goes to the SCHEDULE as 0.5 since the docs/04 §2 change of 2026-10-17 — not to notes. The read-back says it aloud as அரை."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ஒரு ஸ்பூன்"
+    roman: "oru spoon"
+    likely_means: "one spoon (of syrup) — count=1 with form=syrup"
+    doctor_display: "1 spoon (syrup)"
+    category: dosing_shorthand
+    review: NEEDS-NATIVE-REVIEW
+
+  # --- things patients say that are NOT clinical and must not be expanded --
+  - said: "கடவுள் புண்ணியத்துல"
+    roman: "kadavul punniyathula"
+    likely_means: "by God's grace — a filler, carries no clinical content"
+    doctor_display: "(figure of speech)"
+    category: filler
+    note: "Must not be translated into a claim about the patient's condition."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ஊர்ல இருந்து வந்தேன்"
+    roman: "oorla irundhu vanthen"
+    likely_means: "I came from my home town/village — relevant for travel history, not a symptom"
+    doctor_display: "\"came from my home town\" (travel history)"
+    category: general
+    review: NEEDS-NATIVE-REVIEW

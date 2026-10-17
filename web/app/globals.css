@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+  /* It runs on a tablet on a desk; the page itself must never scroll sideways. */
+  overflow-x: hidden;
+}
+
+body {
+  @apply bg-slate-950 text-slate-100 antialiased;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Indic scripts: name the system faces that actually ship on the tablet, then let
+   the browser fall back. No webfont — the OPD network is not to be trusted. */
+.font-tamil {
+  font-family: "Noto Sans Tamil", "Nirmala UI", "Latha", "Tamil Sangam MN", system-ui, sans-serif;
+}
+.font-kannada {
+  font-family: "Noto Sans Kannada", "Nirmala UI", "Tunga", "Kannada Sangam MN", system-ui, sans-serif;
+}
+.font-devanagari {
+  font-family: "Noto Sans Devanagari", "Nirmala UI", "Mangal", "Devanagari Sangam MN", system-ui,
+    sans-serif;
+}
+
+/* Push-to-talk buttons must not be interpretable as text to select or drag. */
+.ptt {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+@media print {
+  /* The picture card is the only thing worth printing. */
+  body {
+    background: #fff;
+    color: #000;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+}

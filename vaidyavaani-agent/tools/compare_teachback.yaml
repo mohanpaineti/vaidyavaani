@@ -1,0 +1,54 @@
+description: >
+  Compare what the patient just said back against the prescription the doctor
+  confirmed. Call it once, with the patient's own words and your English
+  translation of them. The console does the comparing: every verdict and every
+  number comes back from it. Do not work out yourself whether the patient got it
+  right, and do not tell the patient they were wrong before this returns.
+
+input:
+  type: object
+  properties:
+    patient_text:
+      type: string
+      description: What the patient said back, in their own language, word for word.
+    english_text:
+      type: string
+      description: Your English translation of that, with every number kept exactly as said.
+  required:
+    - patient_text
+    - english_text
+
+inject:
+  - session_id: "{{state.session_id}}"
+
+output:
+  type: object
+  properties:
+    overall:
+      type: string
+      enum:
+        - match
+        - mismatch
+        - not_attempted
+    teachback:
+      type: object
+      description: The comparison result, computed by the console.
+      properties:
+        overall:
+          type: string
+          enum:
+            - match
+            - mismatch
+            - not_attempted
+        mismatched_fields:
+          type: array
+          items:
+            type: string
+    simplest_restatement:
+      type: string
+      description: The one part to repeat, in the simplest words, when something did not match.
+  required:
+    - overall
+
+local:
+  handler: tools/compare_teachback.py

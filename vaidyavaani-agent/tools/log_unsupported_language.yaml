@@ -1,0 +1,33 @@
+description: >
+  Record that a patient needs a language this assistant does not cover, such as
+  Tulu, Kodava or Bhojpuri. Call it once, as soon as you are reasonably sure.
+  The result tells you which language to offer as a second best; say so honestly
+  rather than pretending to understand.
+
+input:
+  type: object
+  properties:
+    requested_language:
+      type: string
+      description: The language the patient appears to be speaking, in English.
+    note:
+      type: string
+      description: Anything the clinic should know, such as what the patient said.
+  required:
+    - requested_language
+
+inject:
+  - session_id: "{{state.session_id}}"
+
+output:
+  type: object
+  properties:
+    ok:
+      type: boolean
+    second_language_offer:
+      type: string
+  required:
+    - ok
+
+local:
+  handler: tools/log_unsupported_language.py

@@ -1,0 +1,7 @@
+# Pinned to what actually works on this machine's python 3.14.2 (no uv, no brew python).
+# Regenerate with: .venv/bin/pip freeze
+fastapi==0.143.3
+uvicorn[standard]==0.54.0
+pydantic==2.14.1
+PyYAML==6.0.3
+qrcode[pil]==8.2

@@ -1,0 +1,343 @@
+# content/glossary/hi.yaml — Hindi lay-term glossary for a Bengaluru OPD
+#
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  DRAFTED, NOT VERIFIED. Every entry carries review: NEEDS-NATIVE-REVIEW ║
+# ║  A native Hindi speaker clears it per entry by setting review: ok.      ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+#
+# Used two ways — see the header of content/glossary/ta.yaml for the full
+# rules. `likely_means` is a HYPOTHESIS shown to the doctor in quotes, never a
+# diagnosis, and never spoken to the patient.
+#
+# Who this is for: in a Bengaluru government OPD the Hindi speaker is usually a
+# migrant worker from Bihar, UP, Jharkhand, West Bengal or the North-East using
+# Hindi as a link language, not a first language. So this list leans towards
+# plain Hindustani and away from Sanskritised or Delhi-register vocabulary, and
+# a reviewer should assume the speaker's Hindi may itself be second-language.
+
+schema_version: 1
+language: hi
+language_name_en: Hindi
+
+review:
+  status: pending
+  reviewer: ""
+  reviewed_at: ""
+  how_to_review: >
+    Per entry: would a migrant worker in a Bengaluru OPD actually say this, and
+    is likely_means the most common meaning rather than a merely possible one?
+    Flag anything that is Delhi/Mumbai-specific slang a Bihari speaker would
+    not use.
+
+entries:
+  # --- conditions in lay terms ---------------------------------------------
+  - said: "शुगर है"
+    roman: "sugar hai"
+    likely_means: "I have diabetes"
+    doctor_display: "\"sugar\" (diabetes)"
+    category: code_mix
+    review: NEEDS-NATIVE-REVIEW
+  - said: "बीपी है"
+    roman: "BP hai"
+    likely_means: "I have blood pressure trouble — usually hypertension"
+    doctor_display: "\"BP\" (blood pressure)"
+    category: code_mix
+    note: "Ambiguous high vs low. The doctor must ask."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "गैस बनती है"
+    roman: "gas banti hai"
+    likely_means: "bloating, acidity, wind — sometimes how chest pain gets described"
+    doctor_display: "\"gas\" (bloating/acidity)"
+    category: symptom
+    note: "SAFETY: 'gas' in the chest can be an MI. Pairs with the chest-pain red flag."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "शरीर में गर्मी"
+    roman: "shareer mein garmi"
+    likely_means: "body heat — a folk category, not a measured fever"
+    doctor_display: "\"body heat\" (folk term — ask what exactly)"
+    category: folk_concept
+    note: "Translating this as 'fever' would be an invention."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "कमज़ोरी"
+    roman: "kamzori"
+    likely_means: "weakness, low energy"
+    doctor_display: "\"weakness\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "दस्त"
+    roman: "dast"
+    likely_means: "loose motion, diarrhoea"
+    doctor_display: "\"loose motion\" (diarrhoea)"
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "लूज़ मोशन"
+    roman: "loose motion"
+    likely_means: "diarrhoea — the English phrase used inside Hindi"
+    doctor_display: "\"loose motion\" (diarrhoea)"
+    category: code_mix
+    review: NEEDS-NATIVE-REVIEW
+  - said: "चक्कर आता है"
+    roman: "chakkar aata hai"
+    likely_means: "giddiness, dizziness"
+    doctor_display: "\"giddiness\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "बेहोश हो गया"
+    roman: "behosh ho gaya"
+    likely_means: "fainted, lost consciousness"
+    doctor_display: "\"fainted\""
+    category: symptom
+    note: "SAFETY: urgent red flag."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "उल्टी"
+    roman: "ulti"
+    likely_means: "vomiting"
+    doctor_display: "\"vomiting\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "जी मिचलाना"
+    roman: "ji michlaana"
+    likely_means: "nausea"
+    doctor_display: "\"nausea\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "सीने में जलन"
+    roman: "seene mein jalan"
+    likely_means: "burning in the chest, heartburn"
+    doctor_display: "\"burning in the chest\" (heartburn)"
+    category: symptom
+    note: "SAFETY: overlaps with cardiac chest pain. Watch-level flag."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "साँस फूलती है"
+    roman: "saans phoolti hai"
+    likely_means: "breathlessness on exertion"
+    doctor_display: "\"breathless\""
+    category: symptom
+    note: "SAFETY: urgent red flag."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ज़ुकाम"
+    roman: "zukaam"
+    likely_means: "cold, runny nose"
+    doctor_display: "\"cold\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "खाँसी"
+    roman: "khaansi"
+    likely_means: "cough"
+    doctor_display: "\"cough\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "बुख़ार"
+    roman: "bukhaar"
+    likely_means: "fever"
+    doctor_display: "\"fever\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ठंड लगकर बुख़ार"
+    roman: "thand lagkar bukhaar"
+    likely_means: "fever with chills/rigors"
+    doctor_display: "\"fever with chills\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "पेशाब में जलन"
+    roman: "peshaab mein jalan"
+    likely_means: "burning when passing urine"
+    doctor_display: "\"burning urination\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "बदन दर्द"
+    roman: "badan dard"
+    likely_means: "body ache"
+    doctor_display: "\"body ache\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "पेट फूलना"
+    roman: "pet phoolna"
+    likely_means: "bloating, distended stomach"
+    doctor_display: "\"bloating\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "क़ब्ज़"
+    roman: "kabz"
+    likely_means: "constipation"
+    doctor_display: "\"constipation\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "खुजली"
+    roman: "khujli"
+    likely_means: "itching"
+    doctor_display: "\"itching\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "सूजन"
+    roman: "soojan"
+    likely_means: "swelling"
+    doctor_display: "\"swelling\""
+    category: symptom
+    review: NEEDS-NATIVE-REVIEW
+  - said: "तबीयत ठीक नहीं है"
+    roman: "tabiyat theek nahin hai"
+    likely_means: "not feeling well — the universal opening line, no specific symptom"
+    doctor_display: "\"not feeling well\" (no symptom stated)"
+    category: general
+    note: "Must NOT be expanded into symptoms the patient did not state."
+    review: NEEDS-NATIVE-REVIEW
+
+  # --- body parts -----------------------------------------------------------
+  - said: "पेट"
+    roman: "pet"
+    likely_means: "stomach/abdomen — the whole belly"
+    doctor_display: "\"stomach\" (whole abdomen)"
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "सीना"
+    roman: "seena"
+    likely_means: "chest"
+    doctor_display: "\"chest\""
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "कमर"
+    roman: "kamar"
+    likely_means: "lower back / waist — NOT 'hip'"
+    doctor_display: "\"kamar\" (lower back/waist)"
+    category: body_part
+    note: "Common mistranslation: rendered as 'hip'. In practice patients mean the lower back."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "पीठ"
+    roman: "peeth"
+    likely_means: "upper/mid back"
+    doctor_display: "\"back\""
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "हाथ"
+    roman: "haath"
+    likely_means: "hand OR whole arm"
+    doctor_display: "\"haath\" (hand or arm)"
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "पैर"
+    roman: "pair"
+    likely_means: "foot OR whole leg"
+    doctor_display: "\"pair\" (foot or leg)"
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "सिर"
+    roman: "sir"
+    likely_means: "head"
+    doctor_display: "\"head\""
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "गर्दन"
+    roman: "gardan"
+    likely_means: "neck"
+    doctor_display: "\"neck\""
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+  - said: "जोड़"
+    roman: "jod"
+    likely_means: "joint"
+    doctor_display: "\"joint\""
+    category: body_part
+    review: NEEDS-NATIVE-REVIEW
+
+  # --- time expressions -----------------------------------------------------
+  - said: "दो दिन से"
+    roman: "do din se"
+    likely_means: "since two days / for the last two days"
+    doctor_display: "\"since two days\" (duration = 2 days)"
+    category: time
+    note: "Keep the DURATION, not the Indian-English idiom."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "कल रात से"
+    roman: "kal raat se"
+    likely_means: "since last night"
+    doctor_display: "\"since last night\""
+    category: time
+    note: "कल means BOTH yesterday and tomorrow in Hindi; tense decides. A flipped कल is a real error mode."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "हफ़्ते भर से"
+    roman: "hafte bhar se"
+    likely_means: "for about a week"
+    doctor_display: "\"about a week\""
+    category: time
+    review: NEEDS-NATIVE-REVIEW
+  - said: "कभी कभी"
+    roman: "kabhi kabhi"
+    likely_means: "on and off, sometimes — NOT constant"
+    doctor_display: "\"on and off\" (intermittent)"
+    category: time
+    note: "Dropping this changes the clinical picture."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "बहुत दिनों से"
+    roman: "bahut dinon se"
+    likely_means: "for a long time — vague, weeks to years"
+    doctor_display: "\"a long time\" (vague)"
+    category: time
+    note: "Must NOT be converted into a number of days."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "खाने के बाद"
+    roman: "khaane ke baad"
+    likely_means: "after food"
+    doctor_display: "\"after food\""
+    category: time
+    review: NEEDS-NATIVE-REVIEW
+
+  # --- Hinglish: English words inside a Hindi sentence ---------------------
+  - said: "डॉक्टर साहब, तीन दिन से फीवर है"
+    roman: "doctor sahab, teen din se fever hai"
+    likely_means: "Doctor, I have had fever for three days"
+    doctor_display: "\"fever for three days\""
+    category: code_mix
+    review: NEEDS-NATIVE-REVIEW
+  - said: "टैबलेट ख़त्म हो गई"
+    roman: "tablet khatm ho gayi"
+    likely_means: "The tablets are finished"
+    doctor_display: "\"tablets finished\""
+    category: code_mix
+    review: NEEDS-NATIVE-REVIEW
+  - said: "स्कैन करवाना पड़ेगा क्या"
+    roman: "scan karwana padega kya"
+    likely_means: "Will I need to get a scan?"
+    doctor_display: "\"do I need a scan?\""
+    category: code_mix
+    review: NEEDS-NATIVE-REVIEW
+  - said: "ब्लड टेस्ट करवाया था"
+    roman: "blood test karwaya tha"
+    likely_means: "I had a blood test done"
+    doctor_display: "\"had a blood test\""
+    category: code_mix
+    review: NEEDS-NATIVE-REVIEW
+  - said: "एक शून्य एक"
+    roman: "ek shoonya ek"
+    likely_means: "1-0-1: one morning, none at noon, one at night"
+    doctor_display: "1-0-1 (morning/night)"
+    category: dosing_shorthand
+    note: "Dosing shorthand goes to the SCHEDULE fields, never to free text."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "आधी गोली"
+    roman: "aadhi goli"
+    likely_means: "half a tablet"
+    doctor_display: "half tablet"
+    category: dosing_shorthand
+    note: "Goes to the SCHEDULE as 0.5 since the docs/04 §2 change of 2026-10-17 — not to notes. The read-back says it aloud as आधी (gendered: आधा with a masculine form noun)."
+    review: NEEDS-NATIVE-REVIEW
+  - said: "एक चम्मच"
+    roman: "ek chammach"
+    likely_means: "one spoon (of syrup) — count=1 with form=syrup"
+    doctor_display: "1 spoon (syrup)"
+    category: dosing_shorthand
+    review: NEEDS-NATIVE-REVIEW
+
+  # --- non-clinical phrases that must not be expanded ----------------------
+  - said: "भगवान की दया से"
+    roman: "bhagwaan ki daya se"
+    likely_means: "by God's grace — a filler with no clinical content"
+    doctor_display: "(figure of speech)"
+    category: filler
+    review: NEEDS-NATIVE-REVIEW
+  - said: "गाँव से आया हूँ"
+    roman: "gaon se aaya hoon"
+    likely_means: "I came from my village — travel history, not a symptom"
+    doctor_display: "\"came from my village\" (travel history)"
+    category: general
+    review: NEEDS-NATIVE-REVIEW

@@ -1,0 +1,66 @@
+description: >
+  Send one interpreted turn to the Clinic Console so it appears on both halves of
+  the screen: the original words and the English translation, side by side. Call it
+  once for every turn you interpret, in either direction, immediately after you
+  speak the translation. Never alter the meaning of what was said in order to send
+  it, and never call it for something nobody said.
+
+input:
+  type: object
+  properties:
+    side:
+      type: string
+      description: Who spoke this turn.
+      enum:
+        - patient
+        - doctor
+        - agent
+    original_text:
+      type: string
+      description: What the speaker actually said, in their own language, word for word.
+    english_text:
+      type: string
+      description: The English translation of that turn. If the speaker spoke English, repeat it unchanged.
+    detected_language:
+      type: string
+      description: The language the speaker used, as a two-letter code such as ta, kn, hi or en.
+    lay_terms:
+      type: array
+      description: >
+        Everyday words the speaker used for a medical thing, so the doctor can see
+        both. Only include one when the speaker actually used that word.
+      items:
+        type: object
+        properties:
+          said:
+            type: string
+            description: The everyday word the speaker used.
+          likely_means:
+            type: string
+            description: What a clinician would call it.
+    negations:
+      type: array
+      description: Statements in this turn about something NOT being the case, kept in English.
+      items:
+        type: string
+  required:
+    - side
+    - original_text
+    - english_text
+    - detected_language
+
+inject:
+  - session_id: "{{state.session_id}}"
+
+output:
+  type: object
+  properties:
+    ok:
+      type: boolean
+    turn_id:
+      type: string
+  required:
+    - ok
+
+local:
+  handler: tools/push_turn.py

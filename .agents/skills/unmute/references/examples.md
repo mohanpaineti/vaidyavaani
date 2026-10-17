@@ -1,0 +1,86 @@
+# Working examples
+
+Example packages ship with the Unmute repository. **They live in that repository,
+not in the user's project.** Check before you reach for one:
+
+```sh
+ls examples/
+```
+
+If that directory is there, read the closest package before inventing your own.
+If it is not there, which is the normal case in a project that only installed
+this skill, **do not go looking for it and do not stop**. Build from
+`package.md`, which carries a complete working `agent.yaml` inline, and use the
+table below to know what shape you are aiming at.
+
+## From a need to a package
+
+| What the user wants | Package | What it shows |
+|---|---|---|
+| to collect typed information from a caller and use it | `examples/customer-intake` | the smallest package that saves declared values and hands them to a tool: one agent, three tasks, one local tool, browser audio on both code targets. Every type in the scope once each, a two-field `Contact` model split into a name and an address by a dotted assign, an appending `notes+:`, a `Literal` the model has to pick a word from, and a `time` it has to convert rather than copy. Its tool takes one argument from the model and reads four values out of state through `inject:`, and the caller's number carries `confirm:`, so that tool refuses itself by name until the confirming step has run. **Read this before writing any package with a `state.py`** |
+| one full release-readiness project | `examples/salon-concierge` | a verification task that runs on its own for an explicit phone correction and is reused by name as a task-group step, a booking task the group guarantees runs after it, two agents that hand the caller over, in-process tool state, Langfuse tracing, a cold manager transfer, browser audio, and an inbound phone route on each of its two targets; every tool is local Python, a knowledge lookup, or the `end_call` builtin, so it starts with no external tool server |
+| to show what the optimizations are worth | `examples/salon-concierge-single-prompt` | the same salon in one prompt: no tasks, no handoffs, every tool on every turn. Tools, pre-fetch, model, transport and turn taking are held identical to `salon-concierge`, so the only difference left is the structure. The one tool difference is forced: with no task to confirm the caller's number, the model passes it as an argument instead of `inject:` reading it. **A baseline to read against, never a shape to copy.** If a user asks what tasks and handoffs actually buy, diff it against `examples/salon-concierge` |
+| to show what every optimization is worth together | `examples/salon-concierge-unoptimized` | the single-prompt package with the pre-fetch taken out as well, so none of the optimizations are left: it asks for a number the carrier already supplied, and the model calls `get_current_date` to learn the day. Tools, model, transport and turn taking are held identical to `salon-concierge`. **A starting point to measure against, never a shape to copy** |
+| an agent SLNG hosts | `examples/hotel-concierge` | every kind of tool the slng target accepts, in one hotel concierge line: two `slng:` tools by name (a code tool and a request tool), two named tools from one `mcp:` server, one `builtin:`, five template variables with defaults reaching the greeting and the prompt, an `inject:` that pins the hotel's identifier so the model never asks for it, a tool `announce:` and a think `fallback:`. No mirror: the slng target creates no tool. Emits no runnable project, so there is no `unmute dev`: `unmute deploy` pushes it and a web session or an attached phone number talks to it. A `local:` or `webhook:` block is refused there, so send those to pipecat or livekit |
+| an agent on a Twilio number, through ConversationRelay, on an app the user hosts | `examples/twilio` | everything the twilio target accepts: one agent, one inbound phone channel, one read-only local tool with flat schemas, the `end_call` builtin, Deepgram and ElevenLabs inside ConversationRelay, and an OpenAI think binding. Its README shows the one Gemini block to paste in place of it. Emits a standalone app with no `unmute dev`: the user hosts it at a public https origin, and `unmute deploy <package> --target twilio` points one existing number at it. Recompile, rehost, then deploy after any change, because deploy checks the hosted build's `artifact_id` |
+
+The smallest thing that runs is not an example any more. `unmute init <name>`
+scaffolds it: one agent, browser audio, one builtin, no Twilio and no third-party
+account. `unmute init <name> --target twilio` scaffolds the twilio target's
+starter instead. Start a user there rather than at `salon-concierge`, which is a phone
+package with two agents and tracing.
+
+## How to use one, when you have them
+
+```sh
+unmute validate examples/salon-concierge
+unmute dev examples/salon-concierge --target pipecat
+```
+
+`hotel-concierge` is the exception to that second line: it emits no runnable
+project, so `dev` has nothing to run. Deploy it instead.
+
+```sh
+unmute validate examples/hotel-concierge
+unmute deploy examples/hotel-concierge --dry-run
+```
+
+Then read `examples/<name>/agent.yaml` and its `README.md`. Every one of these
+validates and compiles as it stands, so a package that will not validate can be
+diffed against the closest example rather than debugged from first principles.
+
+For prompts specifically, read `examples/salon-concierge/instructions.md` and its
+two task prompts. Every one of them carries the same `How you speak` and
+`How you sound` blocks that `prompting.md` describes, and its `README.md` records
+which lines came out of a real call going wrong.
+
+## When you do not have them
+
+This is the ordinary case. You are in a user's project, they ran
+`unmute skill install`, and there is no `examples/` anywhere. Then:
+
+1. `unmute init <name>` scaffolds a package that already validates. Start there.
+2. `package.md` has a complete `agent.yaml` inline, plus every top-level key.
+3. Use the table above to know the shape, and `orchestration.md` to write it.
+
+Say nothing to the user about a missing examples directory. It is not missing;
+it was never theirs. Telling them to go and find it wastes their time.
+
+## Templates the user can clone
+
+Finished agents live in a second repository,
+<https://github.com/slng-ai/unmute-templates>. One folder per agent, each a full
+package that validates and compiles. They are not on the user's disk either, so
+name the URL and never a local path. Offer one when the user wants a whole
+working agent to start from rather than a package you author for them, and send
+a template they wrote there as a pull request, not to the compiler repository.
+
+## Shapes with no example
+
+Telephony, transfers, outbound, MCP and regional routing lost their focused
+packages on 2026-08-21. Tasks, task groups and agent handoffs lost theirs on
+2026-08-28: `simple-prompt`, `multi-task`, `task-groups` and `subagents` are
+gone, and `salon-concierge` carries the only shipped phone route. Every one of
+those shapes is still supported and still documented. `orchestration.md` in this
+bundle has the rule for choosing between them and the YAML for writing each one.
+Point the user at the docs page, never at a package path you have not listed.

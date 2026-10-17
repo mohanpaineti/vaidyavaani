@@ -1,0 +1,182 @@
+# content/redflags/kn.yaml — Kannada danger-sign phrase list
+#
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║   ⚠  THIS LIST IS **NOT CLINICALLY REVIEWED**.  ⚠                       ║
+# ║   Drafted by a software team for a hackathon demo. No doctor and no     ║
+# ║   hospital department has signed it off. docs/01 §5 lists a clinically  ║
+# ║   reviewed, department-specific list as EXPLICITLY LATER work.          ║
+# ║   It is a keyword tripwire that surfaces the patient's own words to the ║
+# ║   doctor — NOT triage, NOT screening, NOT complete.                     ║
+# ║   Never call this "clinically validated" on a slide or on stage.        ║
+# ║                                                                          ║
+# ║   SEPARATELY: every Kannada phrase below is LINGUISTICALLY UNVERIFIED   ║
+# ║   — tagged review: NEEDS-NATIVE-REVIEW per flag.                        ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+#
+# Matching rules, severity meanings and the negation_guards contract are
+# documented once, in content/redflags/en.yaml. Read that file first.
+
+schema_version: 1
+language: kn
+language_name_en: Kannada
+clinically_reviewed: false
+review:
+  status: pending
+  reviewer: ""
+  clinical_reviewer: ""        # MUST stay empty for the hackathon.
+  reviewed_at: ""
+  how_to_review: >
+    Read each phrase aloud as a frightened patient would say it. Add the
+    phrasings you have actually heard in a Bengaluru government OPD. Check the
+    negation_guards hardest — a missing guard fires a flag on a denial.
+
+flags:
+  - id: chest_pain
+    english: "chest pain"
+    severity: urgent
+    phrases:
+      - "ಎದೆ ನೋವು"                 # ede novu — chest pain
+      - "ಎದೆ ನೋಯುತ್ತಿದೆ"            # my chest is paining
+      - "ಎದೆ ಭಾರ"                  # heaviness in the chest
+      - "ಎದೆ ಬಿಗಿ ಆಗ್ತಿದೆ"           # chest is tightening
+      - "ಎದೆ ಕಟ್ಟಿಕೊಂಡ"             # chest feels blocked up
+      - "ಎದೆ ಒತ್ತಿದ ಹಾಗೆ"           # like pressure on the chest
+      - "ಎಡ ಕೈಗೆ ನೋವು ಹೋಗ್ತಿದೆ"     # pain going to the left arm
+    negation_guards:
+      - "ಎದೆ ನೋವು ಇಲ್ಲ"            # no chest pain
+      - "ನೋವು ಇಲ್ಲ"                # no pain
+    note: "Patients often call this ಗ್ಯಾಸ್ಟ್ರಿಕ್. See content/glossary/kn.yaml."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: breathlessness
+    english: "breathlessness"
+    severity: urgent
+    phrases:
+      - "ಉಸಿರಾಟ ಕಷ್ಟ"               # difficulty breathing
+      - "ಉಸಿರು ಕಟ್ತಿದೆ"              # breath is choking
+      - "ಉಸಿರು ಬರ್ತಿಲ್ಲ"             # can't get breath
+      - "ನಡೆದರೆ ಏದುಸಿರು"            # winded on walking
+      - "ಉಸಿರಾಡಕ್ಕೆ ಆಗ್ತಿಲ್ಲ"
+    negation_guards:
+      - "ಉಸಿರಾಟ ತೊಂದರೆ ಇಲ್ಲ"
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: bleeding_in_pregnancy
+    english: "bleeding in pregnancy"
+    severity: urgent
+    phrases:
+      - "ಗರ್ಭಿಣಿ ಇದೀನಿ ರಕ್ತ ಹೋಗ್ತಿದೆ"   # pregnant and bleeding
+      - "ಬಸುರಿ ಇದೀನಿ ರಕ್ತ ಬರ್ತಿದೆ"
+      - "ಗರ್ಭದಲ್ಲಿ ರಕ್ತಸ್ರಾವ"
+    negation_guards:
+      - "ರಕ್ತ ಬರ್ತಿಲ್ಲ"
+      - "ಗರ್ಭಿಣಿ ಅಲ್ಲ"
+    note: "Two-fact flag — layer 2 (the LLM) carries this one."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: fainting
+    english: "fainting / loss of consciousness"
+    severity: urgent
+    phrases:
+      - "ಪ್ರಜ್ಞೆ ತಪ್ಪಿತು"             # lost consciousness
+      - "ಬಿದ್ದು ಹೋದೆ"               # I fell down
+      - "ಮೂರ್ಛೆ ಹೋದೆ"              # fainted
+      - "ಬಿದ್ದೆ ನೆನಪಿಲ್ಲ"              # fell, don't remember
+    negation_guards:
+      - "ಬೀಳಲಿಲ್ಲ"
+      - "ಪ್ರಜ್ಞೆ ತಪ್ಪಲಿಲ್ಲ"
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: giddiness
+    english: "giddiness / dizziness (without a faint)"
+    severity: watch
+    phrases:
+      - "ತಲೆ ಸುತ್ತು"
+      - "ತಲೆ ಸುತ್ತುತ್ತಿದೆ"
+      - "ತಲೆ ತಿರುಗ್ತಿದೆ"
+    negation_guards:
+      - "ತಲೆ ಸುತ್ತು ಇಲ್ಲ"
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: self_harm
+    english: "thoughts of self-harm or suicide"
+    severity: urgent
+    phrases:
+      - "ಸಾಯಬೇಕು ಅನಿಸುತ್ತೆ"          # feel like dying
+      - "ಬದುಕಿ ಏನು ಪ್ರಯೋಜನ"         # what is the point of living
+      - "ಜೀವ ಬಿಡಬೇಕು"
+      - "ಸತ್ತು ಹೋಗ್ತೀನಿ"
+      - "ಮಾತ್ರೆ ತಿಂದು ಸಾಯಬೇಕು"
+    negation_guards: []        # deliberately EMPTY — see en.yaml
+    note: "Agent says nothing to the patient, offers no counselling. Flag to the doctor only."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: stroke_signs
+    english: "one-sided weakness or slurred speech"
+    severity: urgent
+    phrases:
+      - "ಒಂದು ಕಡೆ ಕೆಲಸ ಮಾಡ್ತಿಲ್ಲ"     # one side not working
+      - "ಒಂದು ಕಡೆ ಸ್ವಾಧೀನ ಇಲ್ಲ"
+      - "ಕೈ ಎತ್ತಕ್ಕೆ ಆಗ್ತಿಲ್ಲ"
+      - "ಬಾಯಿ ವಾರೆ ಆಗಿದೆ"            # mouth has gone crooked
+      - "ಮಾತು ತೊದಲುತ್ತಿದೆ"           # speech is slurring
+      - "ಮಾತು ಬರ್ತಿಲ್ಲ"
+    negation_guards:
+      - "ಎರಡೂ ಕಡೆ"
+    note: "Slurred speech degrades STT. Low-confidence transcript PLUS this flag is more reason to look, not less."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: fever_stiff_neck
+    english: "high fever with stiff neck"
+    severity: urgent
+    phrases:
+      - "ಜ್ವರ ಕುತ್ತಿಗೆ ಬಿಗಿ"
+      - "ಕುತ್ತಿಗೆ ಬಗ್ಗಿಸಕ್ಕೆ ಆಗ್ತಿಲ್ಲ"    # can't bend my neck
+      - "ಜ್ವರ ತಲೆನೋವು ಕುತ್ತಿಗೆ ನೋವು"
+      - "ಬೆಳಕು ನೋಡಕ್ಕೆ ಆಗ್ತಿಲ್ಲ"        # light hurts
+    negation_guards:
+      - "ಕುತ್ತಿಗೆ ನೋವು ಇಲ್ಲ"
+    note: "Two-fact flag; layer 2 carries it."
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: abuse_disclosure
+    english: "possible abuse or violence disclosure"
+    severity: urgent
+    phrases:
+      - "ಮನೇಲಿ ಹೊಡಿತಾರೆ"            # they beat me at home
+      - "ಗಂಡ ಹೊಡೆದ"                 # my husband hit me
+      - "ಗಂಡ ಹೊಡಿತಾನೆ"              # my husband beats me (habitual)
+      - "ಮಗ ಹೊಡಿತಾನೆ"
+      - "ಮನೇಲಿ ಸೇಫ್ ಇಲ್ಲ"
+      - "ಒತ್ತಾಯ ಮಾಡಿದರು"            # they forced me
+    negation_guards: []        # deliberately EMPTY — see en.yaml
+    note: >
+      The agent must not acknowledge this to the patient, must not ask its own
+      follow-up and must not counsel. Flag to the doctor's screen only.
+      A social-work reviewer should rewrite this entry.
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: bleeding_general
+    english: "visible bleeding"
+    severity: urgent
+    phrases:
+      - "ರಕ್ತ ವಾಂತಿ"                # vomiting blood
+      - "ಮಲದಲ್ಲಿ ರಕ್ತ"              # blood in stool
+      - "ಮೂತ್ರದಲ್ಲಿ ರಕ್ತ"            # blood in urine
+      - "ಕೆಮ್ಮಿದಾಗ ರಕ್ತ"             # blood on coughing
+      - "ರಕ್ತ ನಿಲ್ತಿಲ್ಲ"              # bleeding won't stop
+    negation_guards:
+      - "ರಕ್ತ ಇಲ್ಲ"
+    review: NEEDS-NATIVE-REVIEW
+
+  - id: severe_dehydration_child
+    english: "possible severe dehydration (especially a child)"
+    severity: watch
+    phrases:
+      - "ಮೂತ್ರ ಆಗ್ತಿಲ್ಲ"              # not passing urine
+      - "ಬೆಳಿಗ್ಗೆಯಿಂದ ಮೂತ್ರ ಇಲ್ಲ"
+      - "ಮಗು ಸೊರಗಿದೆ"
+      - "ಮಗು ಹಾಲು ಕುಡಿತಿಲ್ಲ"
+    negation_guards: []
+    note: "Not in the docs/01 §3 MVP eight; drafted as an extra. A clinical reviewer may remove it."
+    review: NEEDS-NATIVE-REVIEW

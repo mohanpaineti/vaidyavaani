@@ -1,0 +1,246 @@
+# content/readback/ta.yaml — Tamil read-back slot templates
+#
+# ╔══════════════════════════════════════════════════════════════════════════╗
+# ║  EVERY Tamil string in this file is DRAFTED, NOT VERIFIED.               ║
+# ║  Each carries a trailing  # NEEDS-NATIVE-REVIEW  marker.                 ║
+# ║  A native Tamil speaker on the team reads the RENDERED sentence aloud,   ║
+# ║  fixes the string, then DELETES that marker from the line.               ║
+# ║  `python eval/score.py review-status` counts what is still unreviewed.   ║
+# ║  Do not ship a demo with review.status still "pending".                  ║
+# ╚══════════════════════════════════════════════════════════════════════════╝
+#
+# Consumed by console/app/readback.py. Inputs are ONLY the integers and enums of
+# a confirmed RxLine (docs/04 §2). No model output reaches this render.
+
+schema_version: 1
+language: ta
+language_name_en: Tamil
+
+review:
+  status: pending            # pending | signed_off
+  reviewer: ""               # native speaker's name
+  reviewed_at: ""
+  how_to_review: >
+    Render every row of eval/fixtures/readback_cases.json for ta, READ IT ALOUD,
+    and ask: would a patient who left school before Class 10 follow this on the
+    first hearing? Reject anything that sounds like a written prescription label.
+
+# ---------------------------------------------------------------------------
+# RENDER CONTRACT — console/app/readback.py must implement exactly this
+# ---------------------------------------------------------------------------
+# 1. clauses = []
+#    for slot in ["morning", "afternoon", "night"]:
+#        n = schedule[slot]
+#        if n == 0: continue                       # a 0 slot is SILENT, never "zero"
+#        tmpl = templates.dose_clause_first if not clauses else templates.dose_clause_next
+#        clauses.append(tmpl filled with time_of_day[slot], food_relation[...],
+#                       count_words[n], form_nouns[form])
+# 2. if clauses is empty  -> RAISE. Never speak. Surface errors.all_zero_schedule
+#    to the DOCTOR in English; the patient hears nothing.
+# 3. sentence = joiners.clause.join(clauses)
+# 4. if duration_days is not null:
+#        sentence += joiners.clause + duration.one_day (if 1) else duration.template
+# 5. sentence += joiners.before_verb + verb_phrase[form]
+# 6. sentence += punctuation.end
+# 7. if notes: sentence += " " + notes_prefix + notes + punctuation.end
+#    notes are read VERBATIM as the doctor typed them (docs/01 §4) — they are the
+#    one un-templated thing in the sentence, so the doctor owns their wording.
+#
+# food_relation and the form noun appear on the FIRST clause only. Repeating
+# "after food, after food, after food" is exactly the robotic register the
+# anchor study's health workers rejected Google Translate for. The brief's own
+# model sentence drops them too: "one tablet in the morning after food, one at
+# night, for 5 days".
+
+# ---------------------------------------------------------------------------
+# WORD ORDER — where Tamil refuses to follow the English template
+# ---------------------------------------------------------------------------
+# * Tamil is SOV. The verb ("take") is the LAST word of the whole sentence, not
+#   of each clause. An English-shaped template ("take one tablet in the
+#   morning") would put it first and sound like a machine. Hence step 5: ONE
+#   verb, at the very end, after the duration.
+# * Order inside a clause is TIME → FOOD → COUNT → NOUN, the reverse of English
+#   ("one tablet in the morning after food").
+# * The duration goes AFTER all the dose clauses and BEFORE the verb.
+# * ஒரு is the adjectival form of ஒன்று. Before a noun it is ALWAYS ஒரு —
+#   "ஒன்று மாத்திரை" is ungrammatical. This is why count_words is a lookup table
+#   and not str(n).
+# * Pluralisation: written Tamil wants மாத்திரைகள் after a numeral >1
+#   ("இரண்டு மாத்திரைகள்"). Spoken clinic Tamil keeps the singular
+#   ("இரண்டு மாத்திரை"). We draft the SPOKEN form. Reviewer: confirm, this is a
+#   register call, not a grammar error.
+# * நாட்களுக்கு is the written plural; நாளைக்கு is what people say. Drafted
+#   spoken. Reviewer: confirm.
+
+# ---------------------------------------------------------------------------
+# STRENGTH IS NEVER SPOKEN — ruled 2026-10-17 (docs/04 §2 rulings table)
+# ---------------------------------------------------------------------------
+# There is deliberately no slot for strength_value / strength_unit anywhere in
+# this file, and none may be added. "500 mg" is not in the patient's audio.
+# The brief's own model sentence has no strength in it, and for a patient who
+# cannot read, the actionable unit is HOW MANY and WHEN — a milligram figure
+# adds load and nothing they can act on. The strength stays on the doctor's
+# card, the picture card and the printed slip, where it is confirmed and
+# checkable by eye. This is a design decision, not an omission.
+
+templates:
+  dose_clause_first: "{time_of_day} {food_relation} {count} {form}"   # NEEDS-NATIVE-REVIEW
+  dose_clause_next: "{time_of_day} {count}"                           # NEEDS-NATIVE-REVIEW
+  # Used when food_relation is null — nothing is invented to fill the slot.
+  dose_clause_first_no_food: "{time_of_day} {count} {form}"           # NEEDS-NATIVE-REVIEW
+
+joiners:
+  clause: ", "
+  before_verb: " "
+
+punctuation:
+  end: "."
+
+time_of_day:
+  morning: "காலையில்"        # NEEDS-NATIVE-REVIEW
+  afternoon: "மதியம்"         # NEEDS-NATIVE-REVIEW
+  night: "இரவில்"             # NEEDS-NATIVE-REVIEW
+
+food_relation:
+  before_food: "சாப்பிடுவதற்கு முன்"   # NEEDS-NATIVE-REVIEW
+  after_food: "சாப்பிட்ட பிறகு"        # NEEDS-NATIVE-REVIEW
+  with_food: "சாப்பாட்டோடு"            # NEEDS-NATIVE-REVIEW
+  # null -> use dose_clause_first_no_food. Never guess "after food".
+
+# schedule values are multiples of 0.5 from 0 to 4 (docs/04 §2, changed
+# 2026-10-17 from int). 0 is handled by skipping the clause, so it needs no
+# word. Every other legal value needs one — a dose the renderer cannot name is
+# a dose the patient cannot hear.
+count_words:
+  0.5: "அரை"      # NEEDS-NATIVE-REVIEW
+  1: "ஒரு"        # NEEDS-NATIVE-REVIEW
+  1.5: "ஒன்றரை"    # NEEDS-NATIVE-REVIEW
+  2: "இரண்டு"     # NEEDS-NATIVE-REVIEW
+  2.5: "இரண்டரை"   # NEEDS-NATIVE-REVIEW
+  3: "மூன்று"      # NEEDS-NATIVE-REVIEW
+  3.5: "மூன்றரை"   # NEEDS-NATIVE-REVIEW
+  4: "நான்கு"      # NEEDS-NATIVE-REVIEW
+  # Tamil half-counts are a single fused word (ஒன்று + அரை -> ஒன்றரை), not two
+  # words. "ஒரு அரை மாத்திரை" would be wrong. அரை on its own precedes the noun
+  # directly, with no ஒரு before it: "அரை மாத்திரை", never "ஒரு அரை மாத்திரை".
+  # Reviewer: ஒன்னரை / இரண்டரை are the colloquial spoken forms; drafted the
+  # standard ones. Confirm which a patient follows faster.
+
+form_nouns:
+  tablet: "மாத்திரை"       # NEEDS-NATIVE-REVIEW
+  capsule: "கேப்சூல்"      # NEEDS-NATIVE-REVIEW
+  syrup: "ஸ்பூன் மருந்து"   # NEEDS-NATIVE-REVIEW  (a syrup count is SPOONS, not bottles)
+  drops: "சொட்டு"          # NEEDS-NATIVE-REVIEW
+  injection: "ஊசி"         # NEEDS-NATIVE-REVIEW
+  ointment: "முறை"         # NEEDS-NATIVE-REVIEW  (ointment counts are TIMES applied)
+  # form is null -> use form_nouns_fallback. Saying "tablet" for an unknown form
+  # would be inventing a clinical fact.
+  null_form: "மருந்து"      # NEEDS-NATIVE-REVIEW  ("medicine")
+
+# The single sentence-final verb, chosen by form. Tamil has no gender agreement
+# here (unlike Hindi), so form alone decides.
+verb_phrase:
+  tablet: "எடுத்துக் கொள்ளுங்கள்"          # NEEDS-NATIVE-REVIEW
+  capsule: "எடுத்துக் கொள்ளுங்கள்"         # NEEDS-NATIVE-REVIEW
+  syrup: "குடியுங்கள்"                      # NEEDS-NATIVE-REVIEW
+  drops: "விடுங்கள்"                        # NEEDS-NATIVE-REVIEW
+  injection: "போட்டுக் கொள்ள வேண்டும்"     # NEEDS-NATIVE-REVIEW
+  ointment: "தடவுங்கள்"                     # NEEDS-NATIVE-REVIEW
+  null_form: "எடுத்துக் கொள்ளுங்கள்"        # NEEDS-NATIVE-REVIEW
+
+duration:
+  # duration_days is 1–180 or null (docs/04 §2).
+  template: "{days} நாளைக்கு"               # NEEDS-NATIVE-REVIEW
+  # 1 day is awkward: "ஒரு நாளைக்கு" is grammatical but patients hear it as
+  # "per day". Drafted as an explicit today-only phrase instead.
+  one_day: "இன்று ஒரு நாள் மட்டும்"          # NEEDS-NATIVE-REVIEW
+  # null duration -> the duration clause is OMITTED entirely. Do not say
+  # "as long as needed" — the doctor did not say that.
+  day_words:
+    1: "ஒரு"        # NEEDS-NATIVE-REVIEW
+    2: "இரண்டு"     # NEEDS-NATIVE-REVIEW
+    3: "மூன்று"      # NEEDS-NATIVE-REVIEW
+    4: "நான்கு"      # NEEDS-NATIVE-REVIEW
+    5: "ஐந்து"       # NEEDS-NATIVE-REVIEW
+    6: "ஆறு"        # NEEDS-NATIVE-REVIEW
+    7: "ஏழு"        # NEEDS-NATIVE-REVIEW
+    8: "எட்டு"       # NEEDS-NATIVE-REVIEW
+    9: "ஒன்பது"      # NEEDS-NATIVE-REVIEW
+    10: "பத்து"      # NEEDS-NATIVE-REVIEW
+    14: "பதினான்கு"  # NEEDS-NATIVE-REVIEW
+    15: "பதினைந்து"  # NEEDS-NATIVE-REVIEW
+    21: "இருபத்தி ஒரு"  # NEEDS-NATIVE-REVIEW
+    30: "முப்பது"    # NEEDS-NATIVE-REVIEW
+  # Any day count not in day_words falls back to the Tamil DIGITS of the integer.
+  # Digits are safer than a wrong number word, and Bulbul reads them in Tamil.
+  digit_fallback: true
+
+# Prefixed to each sentence ONLY when the prescription has more than one line, so a
+# patient with two medicines can tell them apart (docs/04 §2 ruling, 2026-10-17).
+# A single-line read-back names no drug, matching the brief's model sentence.
+# drug_text is inserted exactly as the doctor confirmed it — never translated,
+# never transliterated into Tamil script, because the patient has to match it
+# against what the pharmacist hands over.
+multi_line_prefix: "{drug_text} — "   # NEEDS-NATIVE-REVIEW
+
+notes_prefix: "டாக்டர் சொன்ன கூடுதல் விஷயம்: "   # NEEDS-NATIVE-REVIEW
+
+# Doctor-facing English. Never spoken to the patient.
+errors:
+  all_zero_schedule: "Read-back blocked: this line has 0 in every slot (morning, afternoon and night). The patient would hear no dose at all. Edit the line or remove it."
+  unknown_form: "Read-back blocked: form is not one of tablet|capsule|syrup|injection|drops|ointment|null."
+  duration_out_of_range: "Read-back blocked: duration_days must be 1-180 or null."
+
+# ---------------------------------------------------------------------------
+# WORKED EXAMPLES — these are the assertions in
+# console/tests/test_readback_templates.py and eval/fixtures/readback_cases.json
+# ---------------------------------------------------------------------------
+examples:
+  - name: brief_model_sentence
+    rx: { schedule: { morning: 1, afternoon: 0, night: 1 }, food_relation: after_food, form: tablet, duration_days: 5 }
+    expect_en: "one tablet in the morning after food, one at night, for 5 days"
+    expect: "காலையில் சாப்பிட்ட பிறகு ஒரு மாத்திரை, இரவில் ஒரு, ஐந்து நாளைக்கு எடுத்துக் கொள்ளுங்கள்."   # NEEDS-NATIVE-REVIEW
+  - name: three_times_daily
+    rx: { schedule: { morning: 1, afternoon: 1, night: 1 }, food_relation: after_food, form: tablet, duration_days: 3 }
+    expect: "காலையில் சாப்பிட்ட பிறகு ஒரு மாத்திரை, மதியம் ஒரு, இரவில் ஒரு, மூன்று நாளைக்கு எடுத்துக் கொள்ளுங்கள்."   # NEEDS-NATIVE-REVIEW
+  - name: night_only_one_day
+    rx: { schedule: { morning: 0, afternoon: 0, night: 1 }, food_relation: before_food, form: tablet, duration_days: 1 }
+    expect: "இரவில் சாப்பிடுவதற்கு முன் ஒரு மாத்திரை, இன்று ஒரு நாள் மட்டும் எடுத்துக் கொள்ளுங்கள்."   # NEEDS-NATIVE-REVIEW
+  - name: syrup_two_spoons_no_duration
+    rx: { schedule: { morning: 2, afternoon: 0, night: 2 }, food_relation: after_food, form: syrup, duration_days: null }
+    expect: "காலையில் சாப்பிட்ட பிறகு இரண்டு ஸ்பூன் மருந்து, இரவில் இரண்டு குடியுங்கள்."   # NEEDS-NATIVE-REVIEW
+  - name: no_food_relation_stated
+    rx: { schedule: { morning: 1, afternoon: 0, night: 0 }, food_relation: null, form: capsule, duration_days: 7 }
+    expect: "காலையில் ஒரு கேப்சூல், ஏழு நாளைக்கு எடுத்துக் கொள்ளுங்கள்."   # NEEDS-NATIVE-REVIEW
+  - name: all_zero_must_raise
+    rx: { schedule: { morning: 0, afternoon: 0, night: 0 }, food_relation: after_food, form: tablet, duration_days: 5 }
+    expect: RAISE_all_zero_schedule
+  - name: half_morning_whole_night
+    rx: { schedule: { morning: 0.5, afternoon: 0, night: 1 }, food_relation: after_food, form: tablet, duration_days: 5 }
+    expect_en: "half a tablet in the morning after food, one at night, for 5 days"
+    # note: The realistic half-dose shape (BP and thyroid dosing). Added when docs/04 §2
+    #        changed schedule from int to multiples of 0.5 on 2026-10-17.
+    expect: "காலையில் சாப்பிட்ட பிறகு அரை மாத்திரை, இரவில் ஒரு, ஐந்து நாளைக்கு எடுத்துக் கொள்ளுங்கள்."   # NEEDS-NATIVE-REVIEW
+  - name: half_only_once_a_day
+    rx: { schedule: { morning: 0, afternoon: 0, night: 0.5 }, food_relation: before_food, form: tablet, duration_days: 14 }
+    expect_en: "half a tablet at night before food, for 14 days"
+    # note: A lone half dose, so the half word has to stand without a whole one beside it.
+    expect: "இரவில் சாப்பிடுவதற்கு முன் அரை மாத்திரை, பதினான்கு நாளைக்கு எடுத்துக் கொள்ளுங்கள்."   # NEEDS-NATIVE-REVIEW
+  - name: one_and_a_half
+    rx: { schedule: { morning: 1.5, afternoon: 0, night: 0 }, food_relation: after_food, form: tablet, duration_days: 7 }
+    expect_en: "one and a half tablets in the morning after food, for 7 days"
+    # note: Locks the suppletive form: Hindi डेढ़, Tamil ஒன்றரை, Kannada ಒಂದೂವರೆ — never
+    #        built by concatenating the words for 'one' and 'half'.
+    expect: "காலையில் சாப்பிட்ட பிறகு ஒன்றரை மாத்திரை, ஏழு நாளைக்கு எடுத்துக் கொள்ளுங்கள்."   # NEEDS-NATIVE-REVIEW
+  - name: two_and_a_half_spoons
+    rx: { schedule: { morning: 2.5, afternoon: 0, night: 2.5 }, food_relation: after_food, form: syrup, duration_days: 3 }
+    expect_en: "two and a half spoons morning and night after food, for 3 days"
+    # note: Hindi ढाई, and a half count on a syrup rather than a tablet.
+    expect: "காலையில் சாப்பிட்ட பிறகு இரண்டரை ஸ்பூன் மருந்து, இரவில் இரண்டரை, மூன்று நாளைக்கு குடியுங்கள்."   # NEEDS-NATIVE-REVIEW
+  - name: three_and_a_half_regular_form
+    rx: { schedule: { morning: 3.5, afternoon: 0, night: 0 }, food_relation: after_food, form: tablet, duration_days: 3 }
+    expect_en: "three and a half tablets in the morning after food, for 3 days"
+    # note: 3.5 is where Hindi stops being suppletive and becomes regular (साढ़े + the
+    #        whole number). Locking it here so nobody "simplifies" डेढ़ and ढाई into
+    #        the same pattern.
+    expect: "காலையில் சாப்பிட்ட பிறகு மூன்றரை மாத்திரை, மூன்று நாளைக்கு எடுத்துக் கொள்ளுங்கள்."   # NEEDS-NATIVE-REVIEW
